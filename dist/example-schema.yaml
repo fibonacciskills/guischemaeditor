@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  title: Skill Proficiency API
+  version: "1.0"
+  description: Skill proficiency assessment relative to a defined relative or absolute performance scale
+paths: {}
+components:
+  schemas:
+    skill:
+      description: A Skill represents the target object
+      type: object
+      properties:
+        identifier:
+          required: true
+          description: Type of the target object identifying where to identify the target object
+          type: string
+        name:
+          required: true
+          type: string
+          description: Name or label of the target object identifying where to display
+        description:
+          type: string
+        codeNotation:
+          type: string
+        proficiencyLevel:
+          type: string
+        proficiencyScale:
+          type: object
+          properties:
+            skill:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  codeNotation:
+                    type: string
+                  proficiencyLevel:
+                    type: integer
