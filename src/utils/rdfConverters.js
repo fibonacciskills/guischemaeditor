@@ -123,13 +123,14 @@ function deriveType(data, schemaName) {
 }
 
 /**
- * Determine the @id for a data object.
+ * Determine the @id for a data object. Only returns valid URIs.
  */
 function deriveId(data) {
   if (!data || typeof data !== 'object') return undefined
-  if (data.identifier && typeof data.identifier === 'string') return data.identifier
-  if (data.href && typeof data.href === 'string') return data.href
-  if (data.id && typeof data.id === 'string' && data.id.startsWith('http')) return data.id
+  if (data.identifier && isUri(data.identifier)) return data.identifier
+  if (data.href && isUri(data.href)) return data.href
+  if (data.id && isUri(data.id)) return data.id
+  if (data.url && isUri(data.url)) return data.url
   return undefined
 }
 
@@ -223,7 +224,7 @@ export function convertToTurtle(jsonLdData) {
     return `"${value}"`
   }
 
-  // Serialize a blank node (nested object)
+  // Serialize a nested object as a blank node or named node
   function serializeBlankNode(obj, indent) {
     const nextIndent = indent + '  '
     const predicates = []
@@ -240,12 +241,19 @@ export function convertToTurtle(jsonLdData) {
     }
 
     if (predicates.length === 0) return '[]'
+
+    // If the nested object has a URI @id, use it as a named node reference
+    const nestedId = obj['@id']
+    if (nestedId && isUri(nestedId)) {
+      return `<${nestedId}>`
+    }
+
     return '[\n' + nextIndent + predicates.join(' ;\n' + nextIndent) + '\n' + indent + ']'
   }
 
-  // Main subject
-  const subjectId = jsonLdData['@id'] || '_:subject'
-  const subject = isUri(subjectId) ? `<${subjectId}>` : subjectId
+  // Main subject — must be a URI or blank node
+  const subjectId = jsonLdData['@id']
+  const subject = subjectId && isUri(subjectId) ? `<${subjectId}>` : '_:subject'
   const predicates = []
 
   if (jsonLdData['@type']) {
