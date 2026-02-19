@@ -115,15 +115,8 @@ function generateValueFromType(propDef, allSchemas) {
 }
 
 /**
- * Generate a sample API response with wrapper structure
+ * Generate a sample API response from the schema
  */
 export function generateSampleResponse(schema) {
-  const sampleData = generateSampleFromSchema(schema)
-
-  // If generating skill data, wrap in a common API response format
-  return {
-    identifier: faker.internet.url() + '/jobs/JOB-' + faker.string.alphanumeric(3).toUpperCase(),
-    enumType: "job",
-    skill: Array.isArray(sampleData) ? sampleData : [sampleData]
-  }
+  return generateSampleFromSchema(schema)
 }
