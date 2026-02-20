@@ -1,11 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import useSchemaStore from '../../store/schemaStore'
 import JsonViewer from './JsonViewer'
+import TurtleViewer from './TurtleViewer'
+import FormatDropdown from './FormatDropdown'
 import SampleFileBrowser from './SampleFileBrowser'
+import { convertToJsonLd, convertToTurtle } from '../../utils/rdfConverters'
 
 function SamplePanel() {
-  const { sampleResponse } = useSchemaStore()
+  const { sampleResponse, openApiSchema } = useSchemaStore()
   const [mode, setMode] = useState('generated') // 'generated' or 'real'
+  const [outputFormat, setOutputFormat] = useState('json') // 'json' | 'json-ld' | 'turtle'
   const [selectedFile, setSelectedFile] = useState(null)
   const [realData, setRealData] = useState(null)
 
@@ -37,6 +41,17 @@ function SamplePanel() {
   const generatedData = Object.keys(sampleResponse).length > 0 ? sampleResponse : defaultSample
   const displayData = mode === 'real' && realData ? realData : generatedData
 
+  const formattedOutput = useMemo(() => {
+    if (outputFormat === 'json-ld') {
+      return { type: 'json', data: convertToJsonLd(displayData, openApiSchema) }
+    }
+    if (outputFormat === 'turtle') {
+      const jsonLd = convertToJsonLd(displayData, openApiSchema)
+      return { type: 'turtle', text: convertToTurtle(jsonLd) }
+    }
+    return { type: 'json', data: displayData }
+  }, [outputFormat, displayData, openApiSchema])
+
   const handleRegenerate = () => {
     const store = useSchemaStore.getState()
     store.updateFromSchema()
@@ -47,6 +62,19 @@ function SamplePanel() {
     setRealData(data)
     setMode('real')
   }
+
+  const handleCopy = () => {
+    const text = formattedOutput.type === 'turtle'
+      ? formattedOutput.text
+      : JSON.stringify(formattedOutput.data, null, 2)
+    navigator.clipboard.writeText(text)
+  }
+
+  const copyLabel = outputFormat === 'turtle'
+    ? 'Copy TTL'
+    : outputFormat === 'json-ld'
+      ? 'Copy JSON-LD'
+      : 'Copy JSON'
 
   return (
     <div className="w-full h-full flex flex-col bg-white">
@@ -93,7 +121,8 @@ function SamplePanel() {
               : 'Select a file above'
             : 'Auto-generated from schema'}
         </span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <FormatDropdown value={outputFormat} onChange={setOutputFormat} />
           {mode === 'generated' && (
             <button
               className="text-xs px-3 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded transition-colors"
@@ -105,14 +134,14 @@ function SamplePanel() {
           )}
           <button
             className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
-            onClick={() => navigator.clipboard.writeText(JSON.stringify(displayData, null, 2))}
+            onClick={handleCopy}
           >
-            Copy JSON
+            {copyLabel}
           </button>
         </div>
       </div>
 
-      {/* JSON Display */}
+      {/* Display */}
       <div className="flex-1 overflow-hidden">
         {mode === 'real' && !realData ? (
           <div className="flex items-center justify-center h-full text-gray-500">
@@ -122,8 +151,10 @@ function SamplePanel() {
               <div className="text-xs mt-1 text-gray-400">223 files available</div>
             </div>
           </div>
+        ) : formattedOutput.type === 'turtle' ? (
+          <TurtleViewer text={formattedOutput.text} />
         ) : (
-          <JsonViewer data={displayData} />
+          <JsonViewer data={formattedOutput.data} />
         )}
       </div>
     </div>
