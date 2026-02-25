@@ -1,0 +1,126 @@
+openapi: 3.1.0
+
+info:
+  title: Skills Proficiency API
+  description: >
+    API for retrieving skill assertions associated with a referenced object.
+    Skill proficiency is expressed relative to an explicit proficiency scale.
+  version: 1.1.1
+
+paths:
+  /skills:
+    get:
+      summary: Get skill assertions for a target object
+      operationId: getSkills
+      parameters:
+        - name: identifier
+          in: query
+          required: true
+          description: Globally unique URI identifying the target object
+          schema:
+            type: string
+            format: uri
+
+        - name: targetType
+          in: query
+          required: true
+          description: Type of the target object the identifier refers to
+          schema:
+            type: string
+            enum:
+              - Job
+              - Person
+              - JobRole
+              - Assessment
+              - Framework
+              - LearningProgram
+              - Other
+
+      responses:
+        "200":
+          description: Skill assertions associated with the target
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkillAssertionCollection"
+
+components:
+  schemas:
+    SkillAssertionCollection:
+      type: object
+      required:
+        - identifier
+        - targetType
+        - assertions
+      properties:
+        identifier:
+          type: string
+          format: uri
+        targetType:
+          type: string
+        proficiencyScale:
+          type: string
+          format: uri
+          description: >
+            URI identifying the proficiency scale against which all proficiency levels
+            in this collection are defined.
+        assertions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SkillAssertion"
+
+    SkillAssertion:
+      type: object
+      required:
+        - skill
+        - proficiencyLevel
+      properties:
+        skill:
+          $ref: "#/components/schemas/Skill"
+
+        proficiencyLevel:
+          $ref: "#/components/schemas/ProficiencyLevel"
+            
+        source:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uri
+            type:
+              type: string
+            name:
+              type: string
+
+    Skill:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uri
+        name:
+          type: string
+        description:
+          type: string
+        codedNotation:
+          type: string
+
+    ProficiencyLevel:
+      type: object
+      required:
+        - name
+        - rank
+      properties:
+        id:
+          type: string
+          format: uri
+        name:
+          type: string
+        description:
+          type: string
+        rank:
+          type: integer
+          description: Ordinal position within the scale

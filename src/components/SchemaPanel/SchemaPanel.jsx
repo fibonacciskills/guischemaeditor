@@ -9,7 +9,7 @@ function SchemaPanel() {
 
   useEffect(() => {
     // Load default example schema on mount
-    fetch('/example-schema.yaml')
+    fetch('/openapi.yaml')
       .then(res => res.text())
       .then(text => {
         setLocalValue(text)
