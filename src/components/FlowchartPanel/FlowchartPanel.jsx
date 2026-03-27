@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState, useRef } from 'react'
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -9,6 +9,7 @@ import ReactFlow, {
   addEdge,
   useReactFlow,
 } from 'reactflow'
+import { toPng } from 'html-to-image'
 import 'reactflow/dist/style.css'
 import useSchemaStore from '../../store/schemaStore'
 import SchemaNode from './nodes/SchemaNode'
@@ -27,6 +28,8 @@ function FlowchartPanel() {
   const [edges, setLocalEdges, onEdgesChange] = useEdgesState(storeEdges)
   const [editingNode, setEditingNode] = useState(null)
   const [selectedNodes, setSelectedNodes] = useState([])
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const containerRef = useRef(null)
 
   // Update local nodes when store changes
   React.useEffect(() => {
@@ -194,14 +197,41 @@ function FlowchartPanel() {
         e.preventDefault()
         handleDeleteNodes()
       }
+      // Escape exits fullscreen
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false)
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedNodes, handleDeleteNodes])
+  }, [selectedNodes, handleDeleteNodes, isFullscreen])
+
+  // Export flowchart as PNG
+  const handleExportPng = useCallback(() => {
+    const viewport = containerRef.current?.querySelector('.react-flow__viewport')
+    if (!viewport) return
+
+    toPng(viewport, {
+      backgroundColor: '#f9fafb',
+      pixelRatio: 2,
+    }).then((dataUrl) => {
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = 'schema-mapping.png'
+      a.click()
+    }).catch((err) => {
+      console.error('Failed to export PNG:', err)
+    })
+  }, [])
 
   return (
-    <div className="w-full h-full bg-gray-50 relative">
+    <div
+      ref={containerRef}
+      className={`bg-gray-50 relative ${
+        isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-full'
+      }`}
+    >
       {/* Toolbar */}
       <div className="absolute top-2 left-2 z-10 flex flex-col gap-2">
         <div className="flex gap-2">
@@ -225,17 +255,33 @@ function FlowchartPanel() {
               className="px-3 py-1.5 bg-red-500 text-white text-sm rounded shadow hover:bg-red-600 transition-colors"
               title="Delete Selected (Del/Backspace)"
             >
-              🗑️ Delete ({selectedNodes.length})
+              Delete ({selectedNodes.length})
             </button>
           )}
+          <button
+            onClick={() => setIsFullscreen((f) => !f)}
+            className="px-3 py-1.5 bg-gray-700 text-white text-sm rounded shadow hover:bg-gray-800 transition-colors"
+            title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Fullscreen'}
+          >
+            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          </button>
+          <button
+            onClick={handleExportPng}
+            className="px-3 py-1.5 bg-purple-500 text-white text-sm rounded shadow hover:bg-purple-600 transition-colors"
+            title="Export as PNG"
+          >
+            Export PNG
+          </button>
         </div>
-        <div className="bg-gray-800 text-white text-xs px-3 py-2 rounded shadow-lg max-w-xs">
-          <div className="font-semibold mb-1">Quick Guide:</div>
-          <div>• Double-click nodes to edit</div>
-          <div>• Drag to connect nodes</div>
-          <div>• Select & press Del to delete</div>
-          <div>• Changes sync to schema</div>
-        </div>
+        {!isFullscreen && (
+          <div className="bg-gray-800 text-white text-xs px-3 py-2 rounded shadow-lg max-w-xs">
+            <div className="font-semibold mb-1">Quick Guide:</div>
+            <div>• Double-click nodes to edit</div>
+            <div>• Drag to connect nodes</div>
+            <div>• Select & press Del to delete</div>
+            <div>• Changes sync to schema</div>
+          </div>
+        )}
       </div>
 
       <ReactFlow
