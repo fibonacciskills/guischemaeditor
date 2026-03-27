@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -8,6 +9,7 @@ import ReactFlow, {
   useEdgesState,
   addEdge,
   useReactFlow,
+  ReactFlowProvider,
 } from 'reactflow'
 import { toPng } from 'html-to-image'
 import 'reactflow/dist/style.css'
@@ -225,65 +227,62 @@ function FlowchartPanel() {
     })
   }, [])
 
-  return (
-    <div
-      ref={containerRef}
-      className={`bg-gray-50 relative ${
-        isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-full'
-      }`}
-    >
-      {/* Toolbar */}
-      <div className="absolute top-2 left-2 z-10 flex flex-col gap-2">
-        <div className="flex gap-2">
+  const toolbar = (
+    <div className="absolute top-2 left-2 z-10 flex flex-col gap-2">
+      <div className="flex gap-2">
+        <button
+          onClick={handleAddSchemaNode}
+          className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded shadow hover:bg-blue-600 transition-colors"
+          title="Add Schema Node"
+        >
+          + Schema
+        </button>
+        <button
+          onClick={handleAddPropertyNode}
+          className="px-3 py-1.5 bg-green-500 text-white text-sm rounded shadow hover:bg-green-600 transition-colors"
+          title="Add Property Node"
+        >
+          + Property
+        </button>
+        {selectedNodes.length > 0 && (
           <button
-            onClick={handleAddSchemaNode}
-            className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded shadow hover:bg-blue-600 transition-colors"
-            title="Add Schema Node"
+            onClick={handleDeleteNodes}
+            className="px-3 py-1.5 bg-red-500 text-white text-sm rounded shadow hover:bg-red-600 transition-colors"
+            title="Delete Selected (Del/Backspace)"
           >
-            + Schema
+            Delete ({selectedNodes.length})
           </button>
-          <button
-            onClick={handleAddPropertyNode}
-            className="px-3 py-1.5 bg-green-500 text-white text-sm rounded shadow hover:bg-green-600 transition-colors"
-            title="Add Property Node"
-          >
-            + Property
-          </button>
-          {selectedNodes.length > 0 && (
-            <button
-              onClick={handleDeleteNodes}
-              className="px-3 py-1.5 bg-red-500 text-white text-sm rounded shadow hover:bg-red-600 transition-colors"
-              title="Delete Selected (Del/Backspace)"
-            >
-              Delete ({selectedNodes.length})
-            </button>
-          )}
-          <button
-            onClick={() => setIsFullscreen((f) => !f)}
-            className="px-3 py-1.5 bg-gray-700 text-white text-sm rounded shadow hover:bg-gray-800 transition-colors"
-            title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Fullscreen'}
-          >
-            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-          </button>
-          <button
-            onClick={handleExportPng}
-            className="px-3 py-1.5 bg-purple-500 text-white text-sm rounded shadow hover:bg-purple-600 transition-colors"
-            title="Export as PNG"
-          >
-            Export PNG
-          </button>
-        </div>
-        {!isFullscreen && (
-          <div className="bg-gray-800 text-white text-xs px-3 py-2 rounded shadow-lg max-w-xs">
-            <div className="font-semibold mb-1">Quick Guide:</div>
-            <div>• Double-click nodes to edit</div>
-            <div>• Drag to connect nodes</div>
-            <div>• Select & press Del to delete</div>
-            <div>• Changes sync to schema</div>
-          </div>
         )}
+        <button
+          onClick={() => setIsFullscreen((f) => !f)}
+          className="px-3 py-1.5 bg-gray-700 text-white text-sm rounded shadow hover:bg-gray-800 transition-colors"
+          title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Fullscreen'}
+        >
+          {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+        </button>
+        <button
+          onClick={handleExportPng}
+          className="px-3 py-1.5 bg-purple-500 text-white text-sm rounded shadow hover:bg-purple-600 transition-colors"
+          title="Export as PNG"
+        >
+          Export PNG
+        </button>
       </div>
+      {!isFullscreen && (
+        <div className="bg-gray-800 text-white text-xs px-3 py-2 rounded shadow-lg max-w-xs">
+          <div className="font-semibold mb-1">Quick Guide:</div>
+          <div>• Double-click nodes to edit</div>
+          <div>• Drag to connect nodes</div>
+          <div>• Select & press Del to delete</div>
+          <div>• Changes sync to schema</div>
+        </div>
+      )}
+    </div>
+  )
 
+  const flowContent = (
+    <div ref={containerRef} className="w-full h-full bg-gray-50 relative">
+      {toolbar}
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -296,7 +295,7 @@ function FlowchartPanel() {
         fitView
         snapToGrid
         snapGrid={[15, 15]}
-        deleteKeyCode={null} // Disable default delete (we handle it manually)
+        deleteKeyCode={null}
       >
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
         <Controls />
@@ -309,7 +308,6 @@ function FlowchartPanel() {
         />
       </ReactFlow>
 
-      {/* Node Editor Modal */}
       {editingNode && (
         <NodeEditor
           node={editingNode}
@@ -319,6 +317,25 @@ function FlowchartPanel() {
       )}
     </div>
   )
+
+  if (isFullscreen) {
+    return (
+      <>
+        {/* Keep a placeholder in the layout */}
+        <div className="w-full h-full bg-gray-50" />
+        {createPortal(
+          <div className="fixed inset-0 z-50">
+            <ReactFlowProvider>
+              {flowContent}
+            </ReactFlowProvider>
+          </div>,
+          document.body
+        )}
+      </>
+    )
+  }
+
+  return flowContent
 }
 
 export default FlowchartPanel
