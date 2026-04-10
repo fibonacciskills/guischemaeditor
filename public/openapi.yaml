@@ -5,13 +5,17 @@ info:
   description: >
     API for retrieving skill assertions associated with a referenced object.
     Skill proficiency is expressed relative to an explicit proficiency scale.
-  version: 1.1.1
+    Performance context and proficiency context may reference external
+    ontology nodes (e.g., CEDS, CASE, ASN, SCD) via URI.
+
+  version: .9
 
 paths:
   /skills:
     get:
       summary: Get skill assertions for a target object
       operationId: getSkills
+
       parameters:
         - name: identifier
           in: query
@@ -45,25 +49,33 @@ paths:
                 $ref: "#/components/schemas/SkillAssertionCollection"
 
 components:
+
   schemas:
+
     SkillAssertionCollection:
       type: object
       required:
         - identifier
         - targetType
         - assertions
+
       properties:
+
         identifier:
           type: string
           format: uri
+
         targetType:
           type: string
+
         proficiencyScale:
           type: string
           format: uri
           description: >
-            URI identifying the proficiency scale against which all proficiency levels
-            in this collection are defined.
+            URI identifying the proficiency scale against which all proficiency
+            levels in this collection are defined. The scale itself may reference
+            external rubric models such as CEDS or CASE rubric definitions.
+
         assertions:
           type: array
           items:
@@ -74,15 +86,37 @@ components:
       required:
         - skill
         - proficiencyLevel
+
       properties:
+
         skill:
           $ref: "#/components/schemas/Skill"
 
         proficiencyLevel:
           $ref: "#/components/schemas/ProficiencyLevel"
-            
+
+        performanceContext:
+          type: array
+          description: >
+            Optional references describing the situational context in which
+            the skill was demonstrated or assessed. Each entry can be a URI
+            referencing an external ontology node describing conditions,
+            environments, scenarios, job contexts, or assessment settings.
+          items:
+            type: string
+            format: uri
+
+        proficiencyContext:
+          type: string
+          format: uri
+          description: >
+            URI referencing an external rubric criterion level or proficiency
+            definition from a competency framework such as CEDS, CASE,
+            ASN,SCD or other standardized rubric models.
+
         source:
           type: object
+          description: Entity that issued or generated the assertion
           properties:
             id:
               type: string
@@ -97,30 +131,48 @@ components:
       required:
         - id
         - name
+
       properties:
         id:
           type: string
           format: uri
+          description: >
+            URI identifying the skill in an external taxonomy
+
         name:
           type: string
+
         description:
           type: string
+
         codedNotation:
           type: string
+          description: >
+            Optional code or notation associated with the skill
+            within a specific competency framework.
 
     ProficiencyLevel:
       type: object
       required:
         - name
         - rank
+
       properties:
+
         id:
           type: string
           format: uri
+          description: >
+            Optional URI identifying this proficiency level within
+            a rubric or proficiency framework.
+
         name:
           type: string
+
         description:
           type: string
+
         rank:
           type: integer
-          description: Ordinal position within the scale
+          description: >
+            Ordinal position within the proficiency scale.
