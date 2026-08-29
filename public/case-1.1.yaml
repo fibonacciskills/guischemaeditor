@@ -1,0 +1,691 @@
+openapi: 3.0.0
+
+info:
+  title: Competencies and Academic Standards Exchange (CASE)
+  version: "1.1"
+  description: >
+    CASE 1.1 — IMS Global standard for exchanging competency frameworks,
+    learning standards documents, and academic progressions. Defines the data
+    model for CFDocuments, CFItems, CFAssociations, CFPackages, and supporting
+    vocabulary (CFConcept, CFItemType, CFSubject, CFLicense, CFRubric).
+  contact:
+    name: 1EdTech Consortium
+    url: https://www.1edtech.org/case
+
+servers:
+  - url: https://{host}/ims/case/v1p1
+    variables:
+      host:
+        default: example.com
+        description: Your CASE service host
+
+paths:
+  /CFDocuments:
+    get:
+      summary: List CFDocuments
+      operationId: getCFDocuments
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/filter'
+      responses:
+        '200':
+          description: A paged set of CFDocuments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CFDocumentSet'
+
+  /CFDocuments/{identifier}:
+    get:
+      summary: Get a CFDocument
+      operationId: getCFDocument
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+      responses:
+        '200':
+          description: A single CFDocument
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CFDocument'
+
+  /CFPackages/{identifier}:
+    get:
+      summary: Get a full CFPackage (document + all items + associations + definitions)
+      operationId: getCFPackage
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+      responses:
+        '200':
+          description: Complete CFPackage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CFPackage'
+
+  /CFItems/{identifier}:
+    get:
+      summary: Get a CFItem
+      operationId: getCFItem
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+      responses:
+        '200':
+          description: A single CFItem
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CFItem'
+
+  /CFAssociations/{identifier}:
+    get:
+      summary: Get a CFAssociation
+      operationId: getCFAssociation
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+      responses:
+        '200':
+          description: A single CFAssociation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CFAssociation'
+
+  /CFAssociationSet/{identifier}:
+    get:
+      summary: Get the association set for a CFItem
+      operationId: getCFAssociationSet
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+      responses:
+        '200':
+          description: CFAssociationSet for a given item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CFAssociationSet'
+
+  /CFRubrics/{identifier}:
+    get:
+      summary: Get a CFRubric
+      operationId: getCFRubric
+      parameters:
+        - $ref: '#/components/parameters/identifier'
+      responses:
+        '200':
+          description: A single CFRubric with criteria and levels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CFRubric'
+
+components:
+  parameters:
+    identifier:
+      name: identifier
+      in: path
+      required: true
+      schema:
+        type: string
+      description: UUID of the target resource
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        format: int32
+        default: 100
+      description: Max number of results to return
+    offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        format: int32
+        default: 0
+      description: Number of results to skip
+    filter:
+      name: filter
+      in: query
+      schema:
+        type: string
+      description: Field-based filter expression
+
+  schemas:
+
+    # ── Core document ──────────────────────────────────────────────────────────
+
+    CFDocument:
+      description: >
+        Root container for a competency framework document. A CFDocument is the
+        root for the creation of a learning standard/competency.
+      type: object
+      properties:
+        identifier:
+          type: string
+          description: Globally unique UUID for the CFDocument.
+        uri:
+          type: string
+          format: uri
+          description: Network-resolvable URI referencing this CFDocument.
+        title:
+          type: string
+          description: Title of the CFDocument.
+        description:
+          type: string
+          description: Human-readable description. (data type changed to String in v1.1)
+        creator:
+          type: string
+          description: Entity with authority that promulgates the competency framework.
+        publisher:
+          type: string
+          description: Entity responsible for making the document available.
+        version:
+          type: string
+          description: Revision of the document.
+        adoptionStatus:
+          type: string
+          description: Publication status of the document.
+        caseVersion:
+          type: string
+          description: "CASE spec version. If present, MUST be '1.1'. (new in v1.1)"
+        frameworkType:
+          type: string
+          description: "Type of framework, e.g. 'CourseCodes'. (new in v1.1)"
+        language:
+          type: string
+          description: Default language using ISO 639-2, e.g. 'en'.
+        subject:
+          type: array
+          items:
+            type: string
+          description: Topic or academic subject of the document.
+        subjectURI:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkURI'
+          description: Set of LinkURIs for subjects designated by the promulgating agency.
+        officialSourceURL:
+          type: string
+          format: uri
+          description: URL to the formal human-readable citation of the original document.
+        notes:
+          type: string
+          description: Comment on the published CFDocument.
+        statusStartDate:
+          type: string
+          format: date
+          description: Date the document status started.
+        statusEndDate:
+          type: string
+          format: date
+          description: Date the document status ended or changed.
+        lastChangeDateTime:
+          type: string
+          format: date-time
+          description: System timestamp of the most recent change (ISO 8601).
+        CFPackageURI:
+          $ref: '#/components/schemas/LinkURI'
+        licenseURI:
+          $ref: '#/components/schemas/LinkURI'
+
+    CFDocumentSet:
+      description: Paged collection of CFDocuments.
+      type: object
+      properties:
+        CFDocuments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFDocument'
+          description: One or more CFDocuments.
+
+    # ── Items ──────────────────────────────────────────────────────────────────
+
+    CFItem:
+      description: >
+        A single competency or grouping node within a competency framework.
+        Describes a specific learning objective or a grouping of objectives.
+      type: object
+      properties:
+        identifier:
+          type: string
+          description: Globally unique UUID for the CFItem.
+        uri:
+          type: string
+          format: uri
+          description: Network-resolvable URI for this CFItem.
+        fullStatement:
+          type: string
+          description: Complete text of the competency statement. (data type changed to String in v1.1)
+        abbreviatedStatement:
+          type: string
+          description: Shortened version of the fullStatement.
+        humanCodingScheme:
+          type: string
+          description: Publisher-assigned human-readable code for this item.
+        listEnumeration:
+          type: string
+          description: Alphanumeric position in a sequential listing. Prefer sequenceNumber on CFPckgAssociation.
+        alternativeLabel:
+          type: string
+          description: Alternate term for Competency (e.g. outcome, objective).
+        CFItemType:
+          type: string
+          description: Textual label identifying the class of the statement.
+        CFItemTypeURI:
+          $ref: '#/components/schemas/LinkURI'
+        language:
+          type: string
+          description: Language of the item content (ISO 639-2).
+        educationLevel:
+          type: array
+          items:
+            type: string
+          description: Grade levels or instructional levels this item targets.
+        subject:
+          type: array
+          items:
+            type: string
+          description: "Academic subject of this item. (new in v1.1)"
+        subjectURI:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkURI'
+          description: "LinkURIs for subjects designated by the promulgating agency. (new in v1.1)"
+        conceptKeywords:
+          type: array
+          items:
+            type: string
+          description: Topical keywords and phrases for this item.
+        conceptKeywordsURI:
+          $ref: '#/components/schemas/LinkURI'
+        notes:
+          type: string
+          description: Information about derivation of this item's statement.
+        statusStartDate:
+          type: string
+          format: date
+        statusEndDate:
+          type: string
+          format: date
+        lastChangeDateTime:
+          type: string
+          format: date-time
+        CFDocumentURI:
+          $ref: '#/components/schemas/LinkURI'
+        licenseURI:
+          $ref: '#/components/schemas/LinkURI'
+
+    CFPckgItem:
+      description: CFItem within the context of a CFPackage.
+      allOf:
+        - $ref: '#/components/schemas/CFItem'
+
+    # ── Package ────────────────────────────────────────────────────────────────
+
+    CFPackage:
+      description: >
+        Complete Competency Framework Package: the root CFDocument plus ALL
+        corresponding CFItems, CFAssociations, and CFDefinitions.
+      type: object
+      properties:
+        CFDocument:
+          $ref: '#/components/schemas/CFPckgDocument'
+        CFItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFPckgItem'
+          description: All CFItems that are direct or indirect children of this document.
+        CFAssociations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFPckgAssociation'
+          description: All associations between CFItems and between CFDocuments.
+        CFDefinitions:
+          $ref: '#/components/schemas/CFDefinition'
+        CFRubrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFRubric'
+          description: All rubrics with their criteria and criterion levels.
+
+    CFPckgDocument:
+      description: CFDocument within the context of a CFPackage.
+      allOf:
+        - $ref: '#/components/schemas/CFDocument'
+
+    # ── Associations ───────────────────────────────────────────────────────────
+
+    CFAssociation:
+      description: >
+        Relationship between two CFDocuments or two CFItems outside the context
+        of a CFPackage.
+      type: object
+      properties:
+        identifier:
+          type: string
+          description: Globally unique UUID for the CFAssociation.
+        uri:
+          type: string
+          format: uri
+          description: Network-resolvable URI for this association.
+        associationType:
+          $ref: '#/components/schemas/AssociationType'
+        sequenceNumber:
+          type: integer
+          format: int32
+          description: Ordering among associated objects. Preferred over listEnumeration.
+        notes:
+          type: string
+          description: "Information about this association. (new in v1.1)"
+        originNodeURI:
+          $ref: '#/components/schemas/LinkGenURI'
+        destinationNodeURI:
+          $ref: '#/components/schemas/LinkGenURI'
+        CFDocumentURI:
+          $ref: '#/components/schemas/LinkURI'
+        CFAssociationGroupingURI:
+          $ref: '#/components/schemas/LinkURI'
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    CFPckgAssociation:
+      description: Association between two CFItems or CFDocuments within a CFPackage.
+      allOf:
+        - $ref: '#/components/schemas/CFAssociation'
+
+    CFAssociationSet:
+      description: Collection of CFAssociations for a given CFItem.
+      type: object
+      properties:
+        CFItem:
+          $ref: '#/components/schemas/LinkURI'
+        CFAssociations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFAssociation'
+          description: One or more associations (between CFDocuments or CFItems).
+
+    AssociationType:
+      description: >
+        Type of association between nodes. Predefined values plus extensible
+        extension strings prefixed with 'ext:'.
+      oneOf:
+        - type: string
+          enum:
+            - isChildOf
+            - isPeerOf
+            - isPartOf
+            - exactMatchOf
+            - precedes
+            - skillLevel
+            - isRelatedTo
+            - replaces
+            - hasSkillLevel
+          description: Standard CASE association type
+        - type: string
+          pattern: '^ext:'
+          description: Extension association type prefixed with 'ext:'
+
+    # ── Definitions ────────────────────────────────────────────────────────────
+
+    CFDefinition:
+      description: >
+        Container for the vocabulary used in the competency framework: subjects,
+        concepts, item types, association groupings, and licenses.
+      type: object
+      properties:
+        CFSubjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFSubject'
+        CFConcepts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFConcept'
+        CFItemTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFItemType'
+        CFAssociationGroupings:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFAssociationGrouping'
+        CFLicenses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFLicense'
+
+    CFAssociationGrouping:
+      description: A labelled group of associations with shared meaning.
+      type: object
+      properties:
+        identifier:
+          type: string
+        uri:
+          type: string
+          format: uri
+        title:
+          type: string
+          description: Title of the association grouping.
+        description:
+          type: string
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    # ── Vocabulary ─────────────────────────────────────────────────────────────
+
+    CFSubject:
+      description: A topic or academic subject addressed by the competency framework.
+      type: object
+      properties:
+        identifier:
+          type: string
+        uri:
+          type: string
+          format: uri
+        title:
+          type: string
+        description:
+          type: string
+        hierarchyCode:
+          type: string
+          description: Publisher-assigned code for this subject in the hierarchy.
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    CFConcept:
+      description: A concept addressed by the competency framework.
+      type: object
+      properties:
+        identifier:
+          type: string
+        uri:
+          type: string
+          format: uri
+        title:
+          type: string
+        description:
+          type: string
+        hierarchyCode:
+          type: string
+        keywords:
+          type: string
+          description: Pipe-delimited keywords this concept encompasses.
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    CFItemType:
+      description: Classification label for CFItems within the framework.
+      type: object
+      properties:
+        identifier:
+          type: string
+        uri:
+          type: string
+          format: uri
+        title:
+          type: string
+        description:
+          type: string
+        hierarchyCode:
+          type: string
+        typeCode:
+          type: string
+          description: Short code used for type identification.
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    CFLicense:
+      description: License governing use of the competency framework content.
+      type: object
+      properties:
+        identifier:
+          type: string
+        uri:
+          type: string
+          format: uri
+        title:
+          type: string
+        description:
+          type: string
+        licenseText:
+          type: string
+          description: Full license text or link to the license document.
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    # ── Rubrics ────────────────────────────────────────────────────────────────
+
+    CFRubric:
+      description: A rubric associated with a competency, including all criteria and levels.
+      type: object
+      properties:
+        identifier:
+          type: string
+        uri:
+          type: string
+          format: uri
+        title:
+          type: string
+        description:
+          type: string
+          description: Human-readable description. (data type changed to String in v1.1)
+        CFRubricCriteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFRubricCriterion'
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    CFRubricCriterion:
+      description: A single criterion within a rubric.
+      type: object
+      properties:
+        identifier:
+          type: string
+        uri:
+          type: string
+          format: uri
+        description:
+          type: string
+        category:
+          type: string
+          description: Label for grouping criteria within this rubric.
+        position:
+          type: integer
+          format: int32
+          description: This criterion's position in the rubric's criteria list.
+        weight:
+          type: number
+          format: float
+          description: Numeric weight for scored rubrics.
+        rubricId:
+          type: string
+          description: UUID of the parent CFRubric.
+        CFRubricCriterionLevels:
+          type: array
+          items:
+            $ref: '#/components/schemas/CFRubricCriterionLevel'
+        CFItemURI:
+          $ref: '#/components/schemas/LinkURI'
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    CFRubricCriterionLevel:
+      description: A single performance level within a rubric criterion.
+      type: object
+      properties:
+        identifier:
+          type: string
+        uri:
+          type: string
+          format: uri
+        description:
+          type: string
+        quality:
+          type: string
+          description: Qualitative label for this level (e.g. column header in a table rubric).
+        score:
+          type: number
+          format: float
+          description: Points awarded for achieving this level.
+        position:
+          type: integer
+          format: int32
+          description: Position in the list of levels for the parent criterion.
+        feedback:
+          type: string
+          description: Pre-defined improvement feedback for this level.
+        rubricCriterionId:
+          type: string
+          description: UUID of the parent CFRubricCriterion.
+        lastChangeDateTime:
+          type: string
+          format: date-time
+
+    # ── Link types ─────────────────────────────────────────────────────────────
+
+    LinkURI:
+      description: A reference link to a CASE resource.
+      type: object
+      properties:
+        identifier:
+          type: string
+          description: UUID of the linked resource.
+        uri:
+          type: string
+          format: uri
+          description: Network-resolvable URI to the authoritative reference.
+        title:
+          type: string
+          description: Human-readable title of the linked resource.
+
+    LinkGenURI:
+      description: >
+        A reference link to any resource — not necessarily a CASE Framework.
+        Supports the extensible association model added in v1.1.
+      type: object
+      properties:
+        identifier:
+          type: string
+          description: UUID or other unique identifier for the associated object.
+        uri:
+          type: string
+          format: uri
+          description: Network-resolvable URI to the authoritative reference.
+        title:
+          type: string
+          description: Human-readable title of the associated object.
+        targetType:
+          $ref: '#/components/schemas/AssociationType'
+          description: "Type of the referenced association target. (new in v1.1)"
