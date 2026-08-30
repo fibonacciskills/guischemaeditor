@@ -1,0 +1,1409 @@
+openapi: 3.0.0
+info:
+  title: Credential Transparency Description Language (CTDL) API
+  description: |
+    Credential Transparency Description Language (CTDL) - EDUcore Standards Edition
+    Enables transparent, machine-readable descriptions of credentials, competencies, and related educational resources.
+    Version Release 20260327 with 136 classes, 378 properties, 34 concept schemes, and 445 concepts.
+  version: 20260327
+  contact:
+    name: Credential Engine
+    url: https://credreg.net
+  license:
+    name: Community Use License
+    url: https://credreg.net/ctdl/schema
+
+servers:
+  - url: https://api.credentialengine.org/ctdl/v1
+    description: Production CTDL API
+  - url: https://sandbox.credentialengine.org/ctdl/v1
+    description: Sandbox environment
+
+paths:
+  /credentials:
+    get:
+      summary: Search credentials
+      description: Query and retrieve credentials with optional filtering and pagination
+      operationId: searchCredentials
+      tags:
+        - Credentials
+      parameters:
+        - name: query
+          in: query
+          description: Text search query across credential name and description
+          schema:
+            type: string
+        - name: credentialType
+          in: query
+          description: Filter by credential type enumeration
+          schema:
+            type: string
+            enum:
+              - Certificate
+              - Certification
+              - Degree
+              - Diploma
+              - License
+              - Badge
+        - name: audienceLevel
+          in: query
+          description: Filter by audience level
+          schema:
+            type: string
+            enum:
+              - Early Childhood
+              - Primary
+              - Lower Secondary
+              - Upper Secondary
+              - Post-Secondary Level
+              - Undergraduate Level
+              - Graduate Level
+              - Professional Level
+        - name: status
+          in: query
+          description: Filter by credential status
+          schema:
+            type: string
+            enum:
+              - Active
+              - Probationary
+              - Teach Out
+              - Deprecated
+              - Suspended
+              - Ceasing
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful credential search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Credential'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '400':
+          description: Invalid query parameters
+        '500':
+          description: Server error
+
+  /credentials/{credentialId}:
+    get:
+      summary: Get credential by ID
+      description: Retrieve complete credential details by CTID or credential ID
+      operationId: getCredential
+      tags:
+        - Credentials
+      parameters:
+        - name: credentialId
+          in: path
+          required: true
+          description: CTID or credential identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Credential found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+        '404':
+          description: Credential not found
+        '500':
+          description: Server error
+
+  /assessments:
+    get:
+      summary: Search assessments
+      description: Query and retrieve assessments with optional filtering
+      operationId: searchAssessments
+      tags:
+        - Assessments
+      parameters:
+        - name: query
+          in: query
+          description: Text search query
+          schema:
+            type: string
+        - name: assessmentMethod
+          in: query
+          description: Filter by assessment method
+          schema:
+            type: string
+            enum:
+              - Artifact
+              - Exam
+              - Performance
+              - Portfolio Evaluation
+        - name: deliveryType
+          in: query
+          description: Filter by delivery type
+          schema:
+            type: string
+            enum:
+              - In-Person Only
+              - Online Only
+              - Blended Delivery
+              - Variable Site
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successful assessment search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Assessment'
+                  total:
+                    type: integer
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Server error
+
+  /assessments/{assessmentId}:
+    get:
+      summary: Get assessment by ID
+      description: Retrieve complete assessment details
+      operationId: getAssessment
+      tags:
+        - Assessments
+      parameters:
+        - name: assessmentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assessment found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+        '404':
+          description: Assessment not found
+        '500':
+          description: Server error
+
+  /organizations:
+    get:
+      summary: Search organizations
+      description: Query and retrieve organizations providing credentials and learning opportunities
+      operationId: searchOrganizations
+      tags:
+        - Organizations
+      parameters:
+        - name: query
+          in: query
+          description: Organization name or keyword search
+          schema:
+            type: string
+        - name: agentType
+          in: query
+          description: Filter by agent/organization type
+          schema:
+            type: string
+            enum:
+              - Education and Training Provider
+              - Higher Education Institution
+              - Secondary School
+              - Assessment Body
+              - Accreditation Body
+              - Certification Body
+              - Government Agency
+              - Business
+              - Professional Association
+        - name: agentSector
+          in: query
+          description: Filter by sector
+          schema:
+            type: string
+            enum:
+              - Public
+              - Private For-Profit
+              - Private Not-For-Profit
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successful organization search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Agent'
+                  total:
+                    type: integer
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Server error
+
+  /learning-opportunities:
+    get:
+      summary: Search learning opportunities
+      description: Query and retrieve learning opportunities
+      operationId: searchLearningOpportunities
+      tags:
+        - Learning Opportunities
+      parameters:
+        - name: query
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: learningMethodType
+          in: query
+          description: Filter by learning method
+          schema:
+            type: string
+            enum:
+              - Lecture
+              - Laboratory
+              - Seminar
+              - Applied Instruction
+              - Apprenticeship
+              - Work Based
+              - Competency Based
+              - Self Paced
+        - name: deliveryType
+          in: query
+          schema:
+            type: string
+            enum:
+              - In-Person Only
+              - Online Only
+              - Blended Delivery
+              - Variable Site
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successful learning opportunity search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LearningOpportunity'
+                  total:
+                    type: integer
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Server error
+
+components:
+  schemas:
+    Credential:
+      type: object
+      description: |
+        A credential is a qualification, achievement, personal or organizational quality that is formally recognized or acknowledged.
+        Includes certificates, degrees, licenses, badges, and other recognized credentials.
+      properties:
+        ctid:
+          type: string
+          format: uri
+          description: |
+            Credential Transparency Identifier - globally unique identifier for this version of the credential.
+            Format follows URI scheme for unique identification across registries.
+        credentialId:
+          type: string
+          description: |
+            Organization-specific identifier that may persist across versions.
+            Different from CTID which changes with each version.
+        name:
+          type: string
+          description: Formal name or title of the credential
+        alternativeName:
+          type: array
+          items:
+            type: string
+          description: Aliases, acronyms, or alternative formal names
+        description:
+          type: string
+          description: Complete description of the credential and its significance
+        credentialType:
+          type: string
+          enum:
+            - Certificate
+            - Certification
+            - Associate's Degree
+            - Bachelor's Degree
+            - Master's Degree
+            - Doctoral Degree
+            - Diploma
+            - License
+            - Badge
+            - Micro-credential
+            - Apprenticeship Certificate
+            - Other
+          description: Formal classification of credential type
+        credentialStatusType:
+          type: string
+          enum:
+            - Active
+            - Probationary
+            - Teach Out
+            - Deprecated
+            - Suspended
+            - Ceasing
+          description: Current status or lifecycle state of the credential
+        identifier:
+          type: array
+          items:
+            $ref: '#/components/schemas/Identifier'
+          description: Additional identifiers (URN, UUID, ARK, DOI, INFO, etc.)
+        versionIdentifier:
+          type: string
+          description: Version-specific identifier with originating context or scheme
+        versionCode:
+          type: string
+          description: Organization-specific version number or code
+        offeredBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Organizations that offer this credential
+        ownedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Organizations that own and maintain this credential
+        accreditedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Quality assurance organizations providing accreditation
+        recognizedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Agents acknowledging validity of this credential
+        approvedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Agents giving formal approval
+        regulatedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Quality assurance organizations enforcing requirements
+        registeredBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Agents with which credential is registered
+        audienceLevelType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Early Childhood
+              - Primary
+              - Lower Secondary
+              - Upper Secondary
+              - Post-Secondary Level
+              - Undergraduate Level
+              - Associates Degree Level
+              - Bachelors Degree Level
+              - Masters Degree Level
+              - Doctoral Degree Level
+              - Graduate Level
+              - Professional Level
+              - Advanced Level
+              - Intermediate Level
+              - Beginner Level
+              - Remedial Level
+          description: Progression levels for which credential is intended
+        audienceType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Current Student
+              - Future Student
+              - Former Student / Alumni
+              - Job Seeker
+              - Unemployed
+              - Displaced
+              - Member
+              - Non-Member
+              - Citizen
+              - Non-Citizen
+              - Resident
+              - Non-Resident
+              - Current Military
+              - Former Military / Veteran
+              - Current Military Spouse
+              - Former Military Spouse
+              - Current Military Dependent
+              - Former Military Dependent
+              - Public Employee
+              - Private Employee
+              - Full-Time
+              - Part-Time
+              - Youth
+              - Homemaker
+              - Formerly Incarcerated
+              - Currently Incarcerated
+              - Cultural/Ethnic Minority
+          description: Intended audience classifications
+        requires:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionProfile'
+          description: Prerequisites or entry requirements
+        recommends:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionProfile'
+          description: Recommended preparation
+        corequisite:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionProfile'
+          description: Resources that must be completed simultaneously
+        coPrerequisite:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionProfile'
+          description: Resources that could be prerequisites or corequisites
+        isPreparationFor:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Credentials for which this provides preparation
+        isRequiredFor:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Credentials requiring this one
+        isRecommendedFor:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Credentials for which this is recommended
+        supersedes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Older versions replaced by this credential
+        supersededBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Newer version that replaces this credential
+        advancedStandingFrom:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Resources reducing time/cost of earning this credential
+        isAdvancedStandingFor:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Resources whose time/cost this reduces
+        learningDeliveryType:
+          type: array
+          items:
+            type: string
+            enum:
+              - In-Person Only
+              - Online Only
+              - Blended Delivery
+              - Variable Site
+          description: Delivery modality for associated learning opportunities
+        learningMethodType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Lecture
+              - Laboratory
+              - Seminar
+              - Applied Instruction
+              - Apprenticeship
+              - Work Based
+              - Competency Based
+              - Self Paced
+              - Clinical Rotation
+              - Cocurricular Learning
+              - Simulation
+              - Gaming
+              - Augmented Reality
+              - Medical Residency
+          description: Teaching and learning methods used
+        estimatedDuration:
+          $ref: '#/components/schemas/DurationProfile'
+          description: Estimated time to earn credential
+        estimatedCost:
+          type: array
+          items:
+            $ref: '#/components/schemas/CostProfile'
+          description: Estimated costs to pursue credential
+        commonCosts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CostProfile'
+          description: Common costs that apply to this credential
+        commonConditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionProfile'
+          description: Shared prerequisites and conditions
+        subject:
+          type: array
+          items:
+            type: string
+          description: Subject areas or topics
+        keyword:
+          type: array
+          items:
+            type: string
+          description: Keywords describing relevant aspects
+        classification:
+          type: array
+          items:
+            type: string
+          description: Categories or classifications
+        occupationType:
+          type: array
+          items:
+            type: string
+          description: Occupations for which credential prepares
+        industryType:
+          type: array
+          items:
+            type: string
+          description: Industries relevant to credential
+        instructionalProgramType:
+          type: array
+          items:
+            type: string
+          description: Classification of educational program types
+        renewal:
+          $ref: '#/components/schemas/RevocationProfile'
+          description: Credential renewal information and process
+        revocation:
+          $ref: '#/components/schemas/RevocationProfile'
+          description: Credential revocation conditions and process
+        revocationProcess:
+          type: string
+          format: uri
+          description: URL describing revocation process
+        revocationProcessDescription:
+          type: string
+          description: Description of revocation procedures
+        renewalFrequency:
+          type: string
+          description: How often credential must be renewed
+        renewedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Organizations handling renewal
+        revokedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Organizations that can revoke credential
+        administrationProcess:
+          type: string
+          format: uri
+          description: Process for credential administration
+        administrationProcessDescription:
+          type: string
+          description: Description of administration procedures
+        assessmentDeliveryType:
+          type: array
+          items:
+            type: string
+            enum:
+              - In-Person Only
+              - Online Only
+              - Blended Delivery
+              - Variable Site
+          description: Assessment delivery methods
+        hasPart:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Component credentials that are part of this credential
+        isPartOf:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Larger credentials of which this is a part
+        hasRubric:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityReference'
+          description: Rubrics describing assessment criteria
+        hasProxy:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+          description: Alternative credentials that serve same purpose
+        inCatalog:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityReference'
+          description: Collections/catalogs containing this credential
+        targetPathway:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityReference'
+          description: Pathways in which credential is a component
+        earnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AggregateDataProfile'
+          description: Aggregate earnings data for credential holders
+        employmentOutcome:
+          type: array
+          items:
+            $ref: '#/components/schemas/AggregateDataProfile'
+          description: Employment data for credential holders
+        holders:
+          type: array
+          items:
+            $ref: '#/components/schemas/AggregateDataProfile'
+          description: Information about credential holders
+        aggregateData:
+          type: array
+          items:
+            $ref: '#/components/schemas/AggregateDataProfile'
+          description: Statistical information about credential
+        relevantDataSet:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityReference'
+          description: Data sets on which earnings/employment data based
+        jurisdiction:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+          description: Geographic/political regions where applicable
+        offeredIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+          description: Regions where credential is offered
+        approvedIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+          description: Regions where credential is approved
+        accreditedIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+          description: Regions where credential is accredited
+        recognizedIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+          description: Regions where credential is recognized
+        regulatedIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+          description: Regions where credential is regulated
+        revokedIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+          description: Regions where credential can be revoked
+        renewedIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+          description: Regions where credential is renewable
+        availableAt:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaceProfile'
+          description: Physical locations where credential available
+        availableOnlineAt:
+          type: string
+          format: uri
+          description: URL where credential available online
+        availabilityListing:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: URLs listing online/physical availability
+        financialAssistance:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinancialAssistanceProfile'
+          description: Financial assistance available
+        usesVerificationService:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityReference'
+          description: Verification services for credential
+        image:
+          type: string
+          format: uri
+          description: Logo, icon, or image representing credential
+        inLanguage:
+          type: array
+          items:
+            type: string
+          description: Language(s) of credential documentation
+        subjectWebpage:
+          type: string
+          format: uri
+          description: Authoritative webpage describing credential
+        dateEffective:
+          type: string
+          format: date
+          description: Date when credential became/becomes effective
+        expirationDate:
+          type: string
+          format: date
+          description: Date after which credential no longer valid
+        developmentProcess:
+          type: string
+          format: uri
+          description: URL describing credential development process
+        developmentProcessDescription:
+          type: string
+          description: Description of how credential was developed
+        maintenanceProcess:
+          type: string
+          format: uri
+          description: URL describing maintenance procedures
+        maintenanceProcessDescription:
+          type: string
+          description: Description of maintenance procedures
+        appealProcess:
+          type: string
+          format: uri
+          description: Process for appealing credential decisions
+        appealProcessDescription:
+          type: string
+          description: Description of appeal procedures
+        complaintProcess:
+          type: string
+          format: uri
+          description: Process for filing complaints
+        complaintProcessDescription:
+          type: string
+          description: Description of complaint procedures
+        reviewProcess:
+          type: string
+          format: uri
+          description: Process by which credential is reviewed
+        reviewProcessDescription:
+          type: string
+          description: Description of review procedures
+        processStandards:
+          type: string
+          format: uri
+          description: Webpage describing process standards
+        processStandardsDescription:
+          type: string
+          description: Description of standards used in processes
+        copyrightHolder:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+          description: Organizations holding copyright
+        sameAs:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: URIs of equivalent entities in other registries
+      required:
+        - ctid
+        - name
+
+    Assessment:
+      type: object
+      description: Formal evaluation instrument for measuring competency or learning outcomes
+      properties:
+        ctid:
+          type: string
+          format: uri
+          description: Credential Transparency Identifier for assessment
+        name:
+          type: string
+          description: Title or name of assessment
+        description:
+          type: string
+          description: Description of assessment and what it measures
+        assessmentMethodType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Exam
+              - Portfolio Evaluation
+              - Performance
+              - Artifact
+          description: Type of assessment method
+        assessmentDeliveryType:
+          type: array
+          items:
+            type: string
+            enum:
+              - In-Person Only
+              - Online Only
+              - Blended Delivery
+              - Variable Site
+          description: How assessment is delivered
+        assessmentUseType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Formative Assessment
+              - Summative Assessment
+          description: Purpose of assessment
+        offeredBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+        administrationProcess:
+          type: string
+          description: Description of how assessment is administered
+        estimatedDuration:
+          $ref: '#/components/schemas/DurationProfile'
+        keywords:
+          type: array
+          items:
+            type: string
+        identifier:
+          type: array
+          items:
+            $ref: '#/components/schemas/Identifier'
+      required:
+        - ctid
+        - name
+
+    Agent:
+      type: object
+      description: Organization, person, or other entity with a role in credential ecosystem
+      properties:
+        ctid:
+          type: string
+          format: uri
+          description: Credential Transparency Identifier
+        name:
+          type: string
+          description: Official name of organization or person
+        alternativeName:
+          type: array
+          items:
+            type: string
+          description: Alternative names, aliases, or doing-business-as names
+        description:
+          type: string
+          description: Description of organization or person
+        agentType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Education and Training Provider
+              - Higher Education Institution
+              - Secondary School
+              - Primary School
+              - Lower Secondary School
+              - Upper Secondary School
+              - Career and Technical School
+              - Two-Year College
+              - Four-Year College
+              - Postsecondary Educational Institution
+              - Magnet/Competitive Admissions School
+              - Alternative/Non-Traditional School
+              - Primarily Online
+              - Assessment Body
+              - Accreditation Body
+              - Certification Body
+              - Quality Assurance Body
+              - Regulator
+              - Coordinating Body
+              - Government Agency
+              - Business
+              - Business or Industry Association
+              - Professional Association
+              - Labor Union
+              - Vendor
+              - Collaborative
+          description: Classification of agent type
+        agentSectorType:
+          type: string
+          enum:
+            - Public
+            - Private For-Profit
+            - Private Not-For-Profit
+          description: Sector classification
+        identifier:
+          type: array
+          items:
+            $ref: '#/components/schemas/Identifier'
+        contactPoint:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactPoint'
+          description: Contact information
+        availableAt:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaceProfile'
+          description: Physical locations
+        subjectWebpage:
+          type: string
+          format: uri
+          description: Authoritative webpage for organization
+        image:
+          type: string
+          format: uri
+          description: Logo or image
+        inLanguage:
+          type: array
+          items:
+            type: string
+          description: Languages used by organization
+        sameAs:
+          type: array
+          items:
+            type: string
+            format: uri
+      required:
+        - ctid
+        - name
+
+    LearningOpportunity:
+      type: object
+      description: Education or training offering providing learning activities
+      properties:
+        ctid:
+          type: string
+          format: uri
+        name:
+          type: string
+        description:
+          type: string
+        learningMethodType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Lecture
+              - Laboratory
+              - Seminar
+              - Applied Instruction
+              - Apprenticeship
+              - Work Based
+              - Competency Based
+              - Self Paced
+              - Simulation
+              - Gaming
+              - Augmented Reality
+              - Medical Residency
+              - Clinical Rotation
+              - Cocurricular Learning
+              - Prerecorded
+              - Internship
+          description: Teaching and learning methods
+        learningDeliveryType:
+          type: array
+          items:
+            type: string
+            enum:
+              - In-Person Only
+              - Online Only
+              - Blended Delivery
+              - Variable Site
+        audienceLevelType:
+          type: array
+          items:
+            type: string
+        audienceType:
+          type: array
+          items:
+            type: string
+        offeredBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+        estimatedDuration:
+          $ref: '#/components/schemas/DurationProfile'
+        estimatedCost:
+          type: array
+          items:
+            $ref: '#/components/schemas/CostProfile'
+        availableAt:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaceProfile'
+        availableOnlineAt:
+          type: string
+          format: uri
+      required:
+        - ctid
+        - name
+
+    ConditionProfile:
+      type: object
+      description: Prerequisites, corequisites, entry requirements, or other conditions
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        ctdlConditionType:
+          type: string
+          description: Type of condition
+        requires:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+        recommends:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialReference'
+        targetCredential:
+          $ref: '#/components/schemas/CredentialReference'
+        targetAssessment:
+          $ref: '#/components/schemas/EntityReference'
+        targetLearningOpportunity:
+          $ref: '#/components/schemas/EntityReference'
+
+    CostProfile:
+      type: object
+      description: Cost information for credentials, assessments, or learning opportunities
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        directCostType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Tuition
+              - Fees
+              - Books and Materials
+              - Equipment
+              - Room and Board
+              - Meals
+              - Transportation
+              - Supplies
+              - Technology Fee
+              - Student Services Fee
+              - Graduation Fee
+              - Application
+              - Enrollment Fee
+              - Background Check
+              - Rescheduling Fee
+              - Scoring Fee
+              - Processing Fee
+              - Reexamination Fee
+              - Maintenance Fee
+              - Special Needs
+              - Childcare
+              - Travel
+          description: Categories of costs
+        price:
+          type: number
+          format: double
+          description: Amount of cost
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: ISO 4217 currency code (e.g., USD, EUR)
+        paymentMethodDescription:
+          type: string
+          description: How payment is made
+
+    DurationProfile:
+      type: object
+      description: Time required to earn credential or complete learning opportunity
+      properties:
+        minimumDuration:
+          type: string
+          description: ISO 8601 duration format (e.g., P1Y2M)
+        maximumDuration:
+          type: string
+          description: ISO 8601 duration format
+        exact:
+          type: string
+          description: Exact duration if known
+
+    AggregateDataProfile:
+      type: object
+      description: Statistical data about credential holders or outcomes
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        dataSupported:
+          type: string
+          description: Description of what data is based on
+        numberAwarded:
+          type: integer
+          description: Number of credentials awarded
+        jobsObtained:
+          type: integer
+          description: Number of jobs obtained
+        medianEarnings:
+          type: number
+          description: Median earnings of credential holders
+        lowEarnings:
+          type: number
+          description: Lower quartile earnings
+        highEarnings:
+          type: number
+          description: Upper quartile earnings
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        jurisdiction:
+          $ref: '#/components/schemas/JurisdictionProfile'
+        postReceiptMonths:
+          type: integer
+          description: Months after credential earned
+        demographicInformation:
+          type: string
+          description: Demographic details
+        dateEffective:
+          type: string
+          format: date
+        expirationDate:
+          type: string
+          format: date
+
+    JurisdictionProfile:
+      type: object
+      description: Geographic or political region information
+      properties:
+        region:
+          type: string
+          description: Geographic region or political jurisdiction name
+        geoNamesId:
+          type: string
+          description: GeoNames identifier for location
+        mainJurisdiction:
+          type: string
+          description: Primary jurisdiction
+        subJurisdictions:
+          type: array
+          items:
+            type: string
+          description: Sub-divisions or subordinate jurisdictions
+
+    PlaceProfile:
+      type: object
+      description: Physical location information
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+          description: Street address
+        city:
+          type: string
+        postalCode:
+          type: string
+        region:
+          type: string
+        country:
+          type: string
+          description: Country code (ISO 3166-1 alpha-2)
+        latitude:
+          type: number
+          format: double
+          description: Geographic latitude
+        longitude:
+          type: number
+          format: double
+          description: Geographic longitude
+        availableOnlineAt:
+          type: string
+          format: uri
+
+    ContactPoint:
+      type: object
+      description: Contact information for organization
+      properties:
+        contactType:
+          type: string
+          description: Type of contact
+        name:
+          type: string
+        telephone:
+          type: string
+        email:
+          type: string
+          format: email
+        url:
+          type: string
+          format: uri
+
+    FinancialAssistanceProfile:
+      type: object
+      description: Financial aid or assistance information
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        financialAssistanceType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Scholarship
+              - Grant
+              - Loan
+              - Work-Study
+              - Apprenticeship
+              - Stipend
+              - Tuition Assistance
+              - Other
+          description: Type of financial assistance
+        financialAssistanceForType:
+          type: array
+          items:
+            type: string
+            enum:
+              - Tuition
+              - Fees
+              - Books and Materials
+              - Childcare
+              - Equipment
+              - Special Needs
+              - Other Expenses
+          description: What assistance covers
+        offeredBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+
+    RevocationProfile:
+      type: object
+      description: Information about credential revocation or renewal
+      properties:
+        revocationProcess:
+          type: string
+          format: uri
+          description: Process description URL
+        revocationProcessDescription:
+          type: string
+        revokedBy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentReference'
+        revokedIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/JurisdictionProfile'
+
+    Identifier:
+      type: object
+      description: External identifier with context or scheme information
+      properties:
+        identifierType:
+          type: string
+          enum:
+            - URN
+            - UUID
+            - ARK
+            - DOI
+            - INFO
+            - URL
+            - Other
+          description: Type of identifier scheme
+        identifierValue:
+          type: string
+          description: The actual identifier value
+        identifierScheme:
+          type: string
+          description: URI describing the identification scheme
+
+    CredentialReference:
+      type: object
+      description: Reference to another credential
+      properties:
+        ctid:
+          type: string
+          format: uri
+        name:
+          type: string
+
+    AgentReference:
+      type: object
+      description: Reference to an organization or person
+      properties:
+        ctid:
+          type: string
+          format: uri
+        name:
+          type: string
+
+    EntityReference:
+      type: object
+      description: Generic reference to any entity
+      properties:
+        ctid:
+          type: string
+          format: uri
+        url:
+          type: string
+          format: uri
+        name:
+          type: string

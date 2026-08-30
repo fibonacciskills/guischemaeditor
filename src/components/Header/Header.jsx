@@ -3,7 +3,7 @@ import useSchemaStore from '../../store/schemaStore'
 import yaml from 'js-yaml'
 
 // EDUcore standards — sourced from the EDUcore knowledge graph (educore.org)
-// Each entry with a local `url` is immediately loadable; others show as coming soon.
+// Generated from the EDUcore MCP server in real-time OpenAPI 3.0 YAML format
 const EDUCORE_SCHEMAS = [
   {
     name: 'CASE 1.1',
@@ -14,73 +14,73 @@ const EDUCORE_SCHEMAS = [
   {
     name: 'CLR 2.0',
     description: 'Comprehensive Learner Record Standard — 1EdTech',
-    url: null,
+    url: '/clr-2.0.yaml',
     source: 'CLR',
   },
   {
     name: 'Open Badges 3.0',
     description: 'OpenAPI schema for Open Badges — 1EdTech',
-    url: null,
+    url: '/open-badges-3.0.yaml',
     source: 'OpenBadges',
   },
   {
     name: 'Edu-API 1.0',
     description: 'Education API standard — 1EdTech',
-    url: null,
+    url: '/edu-api-1.0.yaml',
     source: 'EduAPI',
   },
   {
     name: 'Ed-Fi Data Standard',
     description: '201 entities, 1450 fields — Ed-Fi Alliance',
-    url: null,
+    url: '/ed-fi.yaml',
     source: 'EdFi',
   },
   {
     name: 'CEDS 14.0',
-    description: 'Common Education Data Standards — CEDS',
-    url: null,
+    description: 'Common Education Data Standards',
+    url: '/ceds-14.yaml',
     source: 'CEDS',
   },
   {
     name: 'SIF 1.0',
     description: 'SIF Implementation Specification — 159 objects, 15620 fields',
-    url: null,
+    url: '/sif-1.0.yaml',
     source: 'SIF',
   },
   {
     name: 'CTDL',
     description: 'Credential Transparency Description Language — Credential Engine',
-    url: null,
+    url: '/ctdl.yaml',
     source: 'CTDL',
   },
   {
     name: 'LIF 2.0',
     description: 'Machine-Readable Schema for LIF — 1EdTech',
-    url: null,
+    url: '/lif-2.0.yaml',
     source: 'LIF',
   },
   {
     name: 'PESC 1.0',
     description: 'XML Schema — Postsecondary Electronic Standards Council',
-    url: null,
+    url: '/pesc-1.0.yaml',
     source: 'PESC',
   },
   {
     name: 'JEDx 1.0',
     description: 'JEDx Data Model — 5 entities, 139 fields',
-    url: null,
+    url: '/jedx-1.0.yaml',
     source: 'JEDx',
   },
   {
     name: 'SEDM 1.0',
     description: 'Special Education Data Model — IDEA compliance over CEDS',
-    url: null,
+    url: '/sedm-1.0.yaml',
     source: 'SEDM',
   },
   {
     name: 'MedBiquitous',
     description: 'Health Professions Education and Credentialing Standards',
-    url: null,
+    url: '/medbiquitous.yaml',
     source: 'MedBiquitous',
   },
   // ── Local ──────────────────────────────────────────────────────────────────
@@ -111,7 +111,6 @@ function Header() {
   }, [])
 
   const handleSelectSchema = async (schema) => {
-    if (!schema.url) return
     setDropdownOpen(false)
     setLoading(true)
     try {
@@ -209,21 +208,11 @@ function Header() {
                   <li key={i}>
                     <button
                       onClick={() => handleSelectSchema(schema)}
-                      disabled={!schema.url}
-                      className={`w-full text-left px-4 py-2.5 transition-colors flex items-start justify-between gap-2 ${
-                        schema.url
-                          ? 'hover:bg-blue-50 cursor-pointer'
-                          : 'opacity-40 cursor-not-allowed'
-                      }`}
+                      className="w-full text-left px-4 py-2.5 hover:bg-blue-50 transition-colors"
                     >
-                      <span>
-                        <p className="text-sm font-medium text-gray-800 leading-tight">{schema.name}</p>
-                        {schema.description && (
-                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{schema.description}</p>
-                        )}
-                      </span>
-                      {!schema.url && (
-                        <span className="text-[10px] text-gray-400 mt-0.5 shrink-0">soon</span>
+                      <p className="text-sm font-medium text-gray-800">{schema.name}</p>
+                      {schema.description && (
+                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{schema.description}</p>
                       )}
                     </button>
                   </li>

@@ -1,0 +1,928 @@
+openapi: 3.0.0
+info:
+  title: Special Education Data Model (SEDM)
+  version: 1.0.0
+  description: >
+    Special Education Data Model — IDEA compliance domain model over CEDS
+    (2086 native source constructs). This OpenAPI specification provides
+    access to special education data entities, relationships, and workflows
+    for K-12 institutions managing IDEA services and student individualized
+    education programs (IEPs).
+  contact:
+    name: EDUcore Standards
+    url: https://educore.org
+  license:
+    name: EDUcore
+    url: https://educore.org/license
+
+servers:
+  - url: https://api.sedm.example.com/v1
+    description: Production SEDM API server
+  - url: https://sandbox.sedm.example.com/v1
+    description: Sandbox/Testing SEDM API server
+
+paths:
+  /students:
+    get:
+      tags:
+        - Students
+      summary: List K-12 Students
+      description: Retrieve a list of K-12 students with special education status and demographic information.
+      operationId: listStudents
+      parameters:
+        - name: ideaIndicator
+          in: query
+          description: Filter by IDEA eligibility status
+          schema:
+            type: string
+            enum:
+              - "Yes"
+              - "No"
+        - name: englishLearnerStatus
+          in: query
+          description: Filter by English Learner status
+          schema:
+            type: string
+            enum:
+              - "Yes"
+              - "No"
+        - name: economicDisadvantageStatus
+          in: query
+          description: Filter by economic disadvantage status
+          schema:
+            type: string
+            enum:
+              - "Yes"
+              - "No"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Successful retrieval of student list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/K12Student"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+    post:
+      tags:
+        - Students
+      summary: Create a new K-12 Student record
+      description: Create a new student record in the special education system.
+      operationId: createStudent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/K12Student"
+      responses:
+        "201":
+          description: Student record created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/K12Student"
+        "400":
+          description: Invalid request body
+
+  /students/{studentId}:
+    get:
+      tags:
+        - Students
+      summary: Get K-12 Student by ID
+      description: Retrieve detailed information about a specific student.
+      operationId: getStudent
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Student record retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/K12Student"
+        "404":
+          description: Student not found
+
+  /ieps:
+    get:
+      tags:
+        - IEPs
+      summary: List Individualized Education Programs
+      description: Retrieve a list of IEPs including status, dates, and associated goals.
+      operationId: listIEPs
+      parameters:
+        - name: studentId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - "Active"
+              - "Pending Review"
+              - "Inactive"
+              - "Draft"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of IEPs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/IEP"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+  /ieps/{iepId}:
+    get:
+      tags:
+        - IEPs
+      summary: Get IEP by ID
+      description: Retrieve detailed information about a specific Individualized Education Program.
+      operationId: getIEP
+      parameters:
+        - name: iepId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: IEP retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IEP"
+        "404":
+          description: IEP not found
+
+  /discipline:
+    get:
+      tags:
+        - Discipline
+      summary: List Disciplinary Actions
+      description: Retrieve discipline records including infractions, removals, and manifestation determinations.
+      operationId: listDisciplinaryActions
+      parameters:
+        - name: studentId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Discipline records retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Discipline"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+components:
+  schemas:
+    K12Student:
+      type: object
+      description: >
+        Role subtype representing a K-12 student with special education
+        eligibility and demographics.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique student identifier
+        firstName:
+          type: string
+          maxLength: 35
+          description: Student's first name
+        middleName:
+          type: string
+          maxLength: 35
+          description: Student's middle name
+        lastName:
+          type: string
+          maxLength: 35
+          description: Student's last name
+        birthdate:
+          type: string
+          format: date
+          description: Student's date of birth (YYYY-MM-DD)
+        ideaIndicator:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether student is eligible for IDEA services
+        englishLearnerStatus:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: English Learner status
+        economicDisadvantageStatus:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Economic disadvantage status
+        migrantStatus:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether student has migrant status
+        homelessStatus:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether student is experiencing homelessness
+        homelessPrimaryNighttimeResidence:
+          type: string
+          enum:
+            - "Shelter"
+            - "Shelters Transitional Housing"
+            - "Hotels/Motels"
+            - "Doubled Up"
+            - "Transitional Housing"
+            - "Unsheltered"
+          description: Primary nighttime residence for homeless students
+        homelessUnaccompaniedYouthStatus:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether student is unaccompanied homeless youth
+        homelessServicedIndicator:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether student received McKinney-Vento services
+        americanIndianOrAlaskaNative:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+            - "Not selected"
+          description: American Indian or Alaska Native race/ethnicity indicator
+        asian:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+            - "Not selected"
+          description: Asian race/ethnicity indicator
+        blackOrAfricanAmerican:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+            - "Not selected"
+          description: Black or African American race/ethnicity indicator
+        hispanicOrLatinoEthnicity:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+            - "Not selected"
+          description: Hispanic or Latino ethnicity indicator
+        addressType:
+          type: string
+          maxLength: 30
+          enum:
+            - "Guardian's address"
+            - "On campus"
+            - "Shipping"
+            - "Billing address"
+            - "Physical"
+            - "Mailing"
+            - "Off-campus, temporary"
+            - "Permanent, student"
+            - "Father's address"
+            - "Permanent, at time of admission"
+            - "Mother's address"
+          description: Type of address on file
+        addressCity:
+          type: string
+          maxLength: 30
+          description: City of residence
+        addressApartmentRoomSuite:
+          type: string
+          maxLength: 60
+          description: Apartment, room, or suite number
+        countryCode:
+          type: string
+          description: ISO country code
+        enrollmentStatus:
+          type: string
+          enum:
+            - "Transferring (will enroll)"
+            - "Concurrently enrolled"
+            - "Currently enrolled"
+            - "Previously enrolled"
+          description: Current enrollment status
+        entryType:
+          type: string
+          description: Type of entry into current school
+        entryGradeLevel:
+          type: string
+          enum:
+            - "Preschool"
+            - "Adult Education"
+            - "Eighth grade"
+            - "First grade"
+            - "Tenth grade"
+            - "Other"
+            - "Ninth grade"
+            - "Second grade"
+            - "Fifth grade"
+            - "Prekindergarten"
+            - "Kindergarten"
+            - "Ungraded"
+            - "Twelfth grade"
+            - "Sixth grade"
+            - "Postsecondary"
+            - "Grade 13"
+            - "Seventh grade"
+            - "Third grade"
+            - "Transitional Kindergarten"
+            - "Fourth grade"
+            - "Eleventh grade"
+            - "Infant/toddler"
+          description: Grade level upon entry
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp of record creation
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+      required:
+        - id
+        - firstName
+        - lastName
+        - birthdate
+
+    IEP:
+      type: object
+      description: >
+        Resource subtype representing an Individualized Education Program
+        containing goals, services, accommodations, and special education
+        placement information.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique IEP identifier
+        studentId:
+          type: string
+          format: uuid
+          description: Associated student identifier
+        iepInitialDate:
+          type: string
+          format: date
+          description: Date of initial IEP development
+        iepMeetingDate:
+          type: string
+          format: date
+          description: Most recent IEP team meeting date
+        iepNextReviewDate:
+          type: string
+          format: date
+          description: Date of next annual IEP review
+        plaafpStatement:
+          type: string
+          description: Present Level of Academic Achievement and Functional Performance
+        measureableAnnualGoalsCount:
+          type: integer
+          description: Number of measurable annual goals in IEP
+        specialEducationServices:
+          type: array
+          items:
+            type: string
+          description: List of special education services to be provided
+        relatedServices:
+          type: array
+          items:
+            type: string
+          description: List of related services (speech, OT, PT, counseling, etc.)
+        accommodations:
+          type: array
+          items:
+            type: string
+          description: Academic accommodations and supports
+        modifications:
+          type: array
+          items:
+            type: string
+          description: Academic modifications and alternate curriculum
+        leastRestrictiveEnvironmentStatus:
+          type: string
+          description: LRE placement determination and justification
+        transitionPlanningStatus:
+          type: string
+          enum:
+            - "Required"
+            - "In Progress"
+            - "Completed"
+            - "Not Applicable"
+          description: Status of post-secondary transition planning (age 16+)
+        parentConsentDate:
+          type: string
+          format: date
+          description: Date parent/guardian provided consent
+        iepTeamMembers:
+          type: array
+          items:
+            type: string
+          description: Names/roles of IEP team members
+        status:
+          type: string
+          enum:
+            - "Active"
+            - "Pending Review"
+            - "Inactive"
+            - "Draft"
+          description: Current status of IEP
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp of record creation
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+      required:
+        - id
+        - studentId
+        - iepInitialDate
+        - iepMeetingDate
+
+    Discipline:
+      type: object
+      description: >
+        Disciplinary actions, interim removals, manifestation determinations,
+        and educational services after removal for special education students.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique discipline record identifier
+        studentId:
+          type: string
+          format: uuid
+          description: Associated student identifier
+        disciplinaryActionStartDate:
+          type: string
+          format: date
+          description: Start date of disciplinary action (YYYY-MM-DD)
+        disciplinaryActionEndDate:
+          type: string
+          format: date
+          description: End date of disciplinary action (YYYY-MM-DD)
+        disciplineActionType:
+          type: string
+          description: >
+            Type of disciplinary action (in-school suspension, out-of-school
+            suspension, expulsion, removal, etc.)
+        reasonForDiscipline:
+          type: string
+          description: Reason or infraction leading to disciplinary action
+        cumulativeRemovalDays:
+          type: integer
+          format: int32
+          description: Cumulative days of removal from school
+        manifestationDeterminationRequired:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether manifestation determination is required
+        manifestationDeterminationDate:
+          type: string
+          format: date
+          description: Date manifestation determination was conducted
+        manifestationDeterminationOutcome:
+          type: string
+          enum:
+            - "Behavior was NOT a manifestation of disability"
+            - "Behavior WAS a manifestation of disability"
+            - "Pending"
+          description: Outcome of manifestation determination
+        educationalServicesProvided:
+          type: array
+          items:
+            type: string
+          description: Educational services provided during removal
+        functionalBehavioralAssessmentRequired:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether FBA is required or was conducted
+        behaviorInterventionPlanUpdated:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether BIP was updated
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp of record creation
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+      required:
+        - id
+        - studentId
+        - disciplinaryActionStartDate
+
+    AnnualReview:
+      type: object
+      description: >
+        Annual IEP review requirement tracking due dates, completion status,
+        and review outcomes.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique annual review identifier
+        studentId:
+          type: string
+          format: uuid
+          description: Associated student identifier
+        iepId:
+          type: string
+          format: uuid
+          description: Associated IEP identifier
+        reviewDueDate:
+          type: string
+          format: date
+          description: Date annual review is due
+        reviewCompletionDate:
+          type: string
+          format: date
+          description: Actual date review was completed
+        reviewStatus:
+          type: string
+          enum:
+            - "Completed"
+            - "Pending"
+            - "Overdue"
+            - "Cancelled"
+          description: Status of annual review
+        iepRevised:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether IEP was revised based on review
+        participatingTeamMembers:
+          type: array
+          items:
+            type: string
+          description: Team members participating in review
+        parentNotificationDate:
+          type: string
+          format: date
+          description: Date parents were notified of review
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp of record creation
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+      required:
+        - id
+        - studentId
+        - iepId
+        - reviewDueDate
+
+    AssessmentResult:
+      type: object
+      description: >
+        Assessment results tracking state accountability testing participation
+        and performance for students with disabilities.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique assessment result identifier
+        studentId:
+          type: string
+          format: uuid
+          description: Associated student identifier
+        assessmentType:
+          type: string
+          enum:
+            - "Performance assessment"
+            - "Other"
+            - "Achievement test"
+            - "Developmental observation"
+            - "Alternate assessment/grade-level standards"
+            - "Formative"
+            - "Teacher Report"
+            - "Parent Report"
+            - "Prekindergarten Readiness"
+            - "Portfolio assessment"
+            - "Aptitude Test"
+            - "Interim"
+            - "Reading readiness test"
+            - "Diagnostic"
+            - "Language proficiency test"
+            - "Screening"
+            - "Direct Assessment"
+            - "Alternate assessment/ELL"
+            - "Alternative assessment/modified standards"
+            - "Mental ability (intelligence) test"
+            - "Benchmark"
+            - "Kindergarten Readiness"
+            - "Observation"
+            - "Cognitive and perceptual skills test"
+            - "Growth Measure"
+            - "Advanced placement test"
+            - "Computer Adaptive Test"
+          description: Type of assessment administered
+        assessmentTitle:
+          type: string
+          maxLength: 60
+          description: Title or name of assessment
+        assessmentAcademicSubject:
+          type: string
+          enum:
+            - "Mathematics"
+            - "Arts"
+            - "Science - Physical"
+            - "Science - Life"
+            - "Foreign Languages"
+            - "Language arts"
+            - "Social Sciences (History, Geography, Economics, Civics and Government)"
+            - "Science"
+            - "Writing"
+            - "Reading/Language Arts"
+            - "Special education"
+            - "Career and Technical Education"
+            - "English as a second language (ESL)"
+            - "Other"
+            - "History Government - World"
+            - "English"
+            - "History Government - US"
+            - "Reading"
+          description: Academic subject area of assessment
+        assessmentPurpose:
+          type: string
+          enum:
+            - "Program evaluation"
+            - "Obtain a state- or industry-recognized certificate or license"
+            - "College Readiness"
+            - "Screening"
+            - "Other"
+            - "Local graduation requirement"
+            - "Instructional decision"
+            - "Inform local or state policy"
+            - "State accountability"
+            - "Assessment of student's progress"
+            - "Obtain postsecondary credit for the course"
+            - "Program eligibility"
+            - "Federal accountability"
+            - "Course credit"
+            - "Diagnosis"
+            - "Local accountability"
+            - "Admission"
+            - "State graduation requirement"
+            - "Promotion to or retention in a grade or program"
+            - "Course requirement"
+            - "Program placement"
+          description: Primary purpose of assessment
+        gradeLevelWhenAssessed:
+          type: string
+          enum:
+            - "Tenth grade"
+            - "Fifth grade"
+            - "Preschool"
+            - "Transitional Kindergarten"
+            - "Second grade"
+            - "First grade"
+            - "Out of school"
+            - "Postsecondary"
+            - "Prekindergarten"
+            - "Sixth grade"
+            - "Seventh grade"
+            - "Other"
+            - "Eighth grade"
+            - "Adult Education"
+            - "Eleventh grade"
+            - "Twelfth grade"
+            - "Ungraded"
+            - "Ninth grade"
+            - "Grade 13"
+            - "Fourth grade"
+            - "Third grade"
+            - "Infant/toddler"
+            - "Kindergarten"
+          description: Grade level when assessment was administered
+        participationIndicator:
+          type: string
+          enum:
+            - "Did Not Participate"
+            - "Participated"
+          description: Whether student participated in assessment
+        performanceScore:
+          type: number
+          format: float
+          description: Student's performance score or scale score
+        performanceLevel:
+          type: string
+          description: Performance level or proficiency rating
+        assessmentDate:
+          type: string
+          format: date
+          description: Date assessment was administered
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp of record creation
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+      required:
+        - id
+        - studentId
+        - assessmentType
+        - assessmentDate
+
+    Enrollment:
+      type: object
+      description: >
+        Event subtype tracking student enrollment, entry type, exit/withdrawal,
+        and enrollment status changes.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique enrollment record identifier
+        studentId:
+          type: string
+          format: uuid
+          description: Associated student identifier
+        schoolId:
+          type: string
+          format: uuid
+          description: School enrollment identifier
+        enrollmentStatus:
+          type: string
+          enum:
+            - "Transferring (will enroll)"
+            - "Concurrently enrolled"
+            - "Currently enrolled"
+            - "Previously enrolled"
+          description: Current enrollment status
+        entryDate:
+          type: string
+          format: date
+          description: Date student entered school
+        entryType:
+          type: string
+          description: Type of entry into school
+        entryGradeLevel:
+          type: string
+          enum:
+            - "Preschool"
+            - "Adult Education"
+            - "Eighth grade"
+            - "First grade"
+            - "Tenth grade"
+            - "Other"
+            - "Ninth grade"
+            - "Second grade"
+            - "Fifth grade"
+            - "Prekindergarten"
+            - "Kindergarten"
+            - "Ungraded"
+            - "Twelfth grade"
+            - "Sixth grade"
+            - "Postsecondary"
+            - "Grade 13"
+            - "Seventh grade"
+            - "Third grade"
+            - "Transitional Kindergarten"
+            - "Fourth grade"
+            - "Eleventh grade"
+            - "Infant/toddler"
+          description: Grade level upon entry
+        exitDate:
+          type: string
+          format: date
+          description: Date student exited or withdrew
+        exitOrWithdrawalType:
+          type: string
+          description: Reason for exit or withdrawal from school
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp of record creation
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+      required:
+        - id
+        - studentId
+        - schoolId
+        - enrollmentStatus
+        - entryDate
+
+    Pagination:
+      type: object
+      description: Pagination metadata for list responses
+      properties:
+        limit:
+          type: integer
+          description: Number of records per page
+        offset:
+          type: integer
+          description: Offset from beginning of result set
+        total:
+          type: integer
+          description: Total number of records available
+        hasMore:
+          type: boolean
+          description: Whether additional records are available
+
+    Error:
+      type: object
+      description: Standard error response
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+      required:
+        - code
+        - message

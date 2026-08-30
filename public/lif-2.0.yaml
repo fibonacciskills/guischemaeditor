@@ -1,0 +1,661 @@
+openapi: 3.0.0
+info:
+  title: Learning Information Framework (LIF)
+  description: Machine-Readable Schema for LIF OpenAPI 3.0.0 specification version 2.0. The Learning Information Framework provides a comprehensive data model for educational information management, supporting integration across learning systems, competency frameworks, credentials, and learner records.
+  version: 2.0
+  contact:
+    url: https://www.imsglobal.org/lis/index.html
+  license:
+    name: IMS Global License
+    url: https://www.imsglobal.org/lis/index.html
+
+servers:
+  - url: https://api.learning.example.com/lif/v2.0
+    description: LIF API Production Server
+  - url: https://staging.learning.example.com/lif/v2.0
+    description: LIF API Staging Server
+
+tags:
+  - name: Persons
+    description: Person entity and related personal information
+  - name: Organizations
+    description: Organization entities and relationships
+  - name: Learning
+    description: Learning experiences, courses, and assessments
+  - name: Competencies
+    description: Competency frameworks and definitions
+  - name: Credentials
+    description: Credentials and qualifications
+  - name: Metadata
+    description: Supporting metadata entities
+
+paths:
+  /persons:
+    get:
+      summary: List all persons
+      operationId: listPersons
+      tags:
+        - Persons
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of records to return
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          description: Number of records to skip
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of persons
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Person'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+    post:
+      summary: Create a new person
+      operationId: createPerson
+      tags:
+        - Persons
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Person'
+      responses:
+        '201':
+          description: Person created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '400':
+          description: Invalid input
+
+  /persons/{id}:
+    get:
+      summary: Get a person by ID
+      operationId: getPerson
+      tags:
+        - Persons
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Person identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Person details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '404':
+          description: Person not found
+    put:
+      summary: Update a person
+      operationId: updatePerson
+      tags:
+        - Persons
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Person identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Person'
+      responses:
+        '200':
+          description: Person updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '404':
+          description: Person not found
+
+  /organizations:
+    get:
+      summary: List all organizations
+      operationId: listOrganizations
+      tags:
+        - Organizations
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of organizations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Organization'
+                  total:
+                    type: integer
+    post:
+      summary: Create a new organization
+      operationId: createOrganization
+      tags:
+        - Organizations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      responses:
+        '201':
+          description: Organization created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+
+  /courses:
+    get:
+      summary: List all courses
+      operationId: listCourses
+      tags:
+        - Learning
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: subject
+          in: query
+          description: Filter by subject
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Course'
+                  total:
+                    type: integer
+    post:
+      summary: Create a new course
+      operationId: createCourse
+      tags:
+        - Learning
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '201':
+          description: Course created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+
+  /competency-frameworks:
+    get:
+      summary: List all competency frameworks
+      operationId: listCompetencyFrameworks
+      tags:
+        - Competencies
+      responses:
+        '200':
+          description: List of competency frameworks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CompetencyFramework'
+                  total:
+                    type: integer
+    post:
+      summary: Create a new competency framework
+      operationId: createCompetencyFramework
+      tags:
+        - Competencies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompetencyFramework'
+      responses:
+        '201':
+          description: Competency framework created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompetencyFramework'
+
+components:
+  schemas:
+    Person:
+      type: object
+      description: Represents a person entity in the Learning Information Framework with identity, demographic, and contact information
+      properties:
+        identifier:
+          type: string
+          description: The primary key identifier for this person in the LIF data model
+        informationSourceId:
+          type: string
+          description: An identifier key representing the source organization and system
+        informationSourceOrganization:
+          type: string
+          description: The organization from which this person data came
+        informationSourceSystem:
+          type: string
+          description: The specific information system from which this person data came
+        deletedDate:
+          type: string
+          format: date
+          description: The date when this record was deleted
+        deletedStatus:
+          type: string
+      required:
+        - identifier
+
+    Organization:
+      type: object
+      description: Represents an organization entity in the Learning Information Framework
+      properties:
+        identifier:
+          type: string
+          description: The primary key identifier for this organization
+        name:
+          type: string
+          description: The name of the organization
+        description:
+          type: string
+          description: A description or quick summary of the organization
+        organizationType:
+          type: array
+          items:
+            type: string
+          description: The type of educational organization or entity
+        shortName:
+          type: string
+          description: The abbreviated form of the organization name
+        imageUrl:
+          type: string
+          format: uri
+          description: The URL for an image representing the organization
+        informationSourceId:
+          type: string
+          description: An identifier key representing the source
+        informationSourceOrganization:
+          type: string
+          description: The organization from which this data came
+        informationSourceSystem:
+          type: string
+          description: The specific information system from which this data came
+        deletedDate:
+          type: string
+          format: date
+        deletedStatus:
+          type: string
+      required:
+        - identifier
+
+    Course:
+      type: object
+      description: Represents a course offering in the Learning Information Framework
+      properties:
+        identifier:
+          type: string
+          description: The primary key identifier for this course
+        name:
+          type: string
+          description: The descriptive name of the course
+        description:
+          type: string
+          description: A description of the course content and goals
+        courseNumber:
+          type: string
+          description: The official reference number for the course
+        subject:
+          type: array
+          items:
+            type: string
+          description: The subject areas covered by the course
+        courseBeginDate:
+          type: string
+          format: date
+          description: The date the course officially began
+        courseEndDate:
+          type: string
+          format: date
+          description: The date the course ends
+        courseCreditValue:
+          type: number
+          format: float
+          description: Number indicating the credit hours that may be earned
+        informationSourceId:
+          type: string
+          description: An identifier key representing the source
+        informationSourceOrganization:
+          type: string
+          description: The organization from which this data came
+        informationSourceSystem:
+          type: string
+          description: The specific information system from which this data came
+        deletedDate:
+          type: string
+          format: date
+        deletedStatus:
+          type: string
+      required:
+        - identifier
+
+    CompetencyFramework:
+      type: object
+      description: Represents a competency framework that organizes competencies
+      properties:
+        identifier:
+          type: string
+          description: The primary key identifier for this framework
+        name:
+          type: string
+          description: The name of the competency framework
+        description:
+          type: string
+          description: A textual description of the scope and contents
+        creator:
+          type: string
+          description: The person or organization responsible for the framework
+        publisher:
+          type: string
+          description: The entity responsible for making the framework available
+        language:
+          type: string
+          description: The default language of the framework content
+        publicationStatus:
+          type: string
+          enum:
+            - Published
+            - Unknown
+            - Adopted
+            - Draft
+            - Deprecated
+          description: The publication status of the framework
+        publicationDate:
+          type: string
+          format: date
+          description: The date on which this content was first published
+        validStartDate:
+          type: string
+          format: date
+          description: The date the framework was adopted
+        validEndDate:
+          type: string
+          format: date
+          description: The date the framework was deprecated or replaced
+        uri:
+          type: string
+          format: uri
+          description: An unambiguous reference to the framework
+        version:
+          type: string
+          description: The revision version of the framework
+        informationSourceId:
+          type: string
+          description: An identifier key representing the source
+        informationSourceOrganization:
+          type: string
+          description: The organization from which this data came
+        informationSourceSystem:
+          type: string
+          description: The specific information system from which this data came
+        deletedDate:
+          type: string
+          format: date
+        deletedStatus:
+          type: string
+      required:
+        - identifier
+
+    Assessment:
+      type: object
+      description: Represents a learning assessment specification
+      properties:
+        identifier:
+          type: array
+          items:
+            type: string
+          description: The primary key identifier for this assessment
+        name:
+          type: string
+          description: The title name or name of the assessment
+        description:
+          type: string
+          description: Statement, characterization or account of the assessment
+        assessmentLevel:
+          type: string
+          enum:
+            - PT
+            - MD
+            - '10'
+            - '12'
+            - '5'
+            - '7'
+            - PB
+            - DO
+            - '3'
+            - PD
+            - '4'
+            - '11'
+            - '2'
+            - AS
+            - '8'
+            - '1'
+            - IT
+            - '6'
+            - AE
+            - '13'
+            - PM
+            - PK
+            - TK
+            - '9'
+            - BA
+            - KG
+            - OT
+            - PR
+          description: The typical level for which the assessment was designed
+        contentStandardStatus:
+          type: string
+          enum:
+            - NotApplicable
+            - MissingAtWill
+          description: The status of content standard conformance
+        subject:
+          type: array
+          items:
+            type: string
+          description: The content or subject area being evaluated
+        ctid:
+          type: string
+          description: Globally unique Credential Transparency Identifier
+        dateEffective:
+          type: string
+          format: date
+          description: Effective date of this assessment
+        dateIssued:
+          type: string
+          format: date
+          description: The date when the assessment was formally approved/issued
+        informationSourceId:
+          type: string
+          description: An identifier key representing the source
+        informationSourceOrganization:
+          type: string
+          description: The organization from which this data came
+        informationSourceSystem:
+          type: string
+          description: The specific information system from which this data came
+        deletedDate:
+          type: string
+          format: date
+        deletedStatus:
+          type: string
+      required:
+        - identifier
+
+    Competency:
+      type: object
+      description: Represents a competency within a competency framework
+      properties:
+        identifier:
+          type: string
+          description: The primary key identifier for this competency
+        name:
+          type: string
+          description: The name of the competency
+        statement:
+          type: string
+          description: A statement describing the competency
+        code:
+          type: string
+          description: A human-referenceable code for the competency
+        uri:
+          type: string
+          format: uri
+          description: A network-resolvable URL for the competency definition
+        language:
+          type: string
+          description: The language of the competency statement
+        level:
+          type: string
+          description: The level or proficiency level of the competency
+        version:
+          type: string
+          description: The version of the competency definition
+        validStartDate:
+          type: string
+          format: date
+          description: The start date when the competency is valid
+        validEndDate:
+          type: string
+          format: date
+          description: The end date of competency validity
+        informationSourceId:
+          type: string
+          description: An identifier key representing the source
+        informationSourceOrganization:
+          type: string
+          description: The organization from which this data came
+        informationSourceSystem:
+          type: string
+          description: The specific information system from which this data came
+        deletedDate:
+          type: string
+          format: date
+        deletedStatus:
+          type: string
+      required:
+        - identifier
+
+    Credential:
+      type: object
+      description: Represents a credential or achievement
+      properties:
+        identifier:
+          type: string
+          description: The primary key identifier for this credential
+        name:
+          type: string
+          description: Name of the credential
+        abbreviation:
+          type: string
+          description: Abbreviated name of the credential
+        description:
+          type: string
+          description: Description of the credential
+        fieldOfStudy:
+          type: string
+          description: Category, subject, area of study, or discipline
+        level:
+          type: string
+          description: The level of the credential
+        creditsAvailable:
+          type: string
+          description: Credit hours associated with this credential
+        effectiveDate:
+          type: string
+          format: date
+          description: The effective date of the credential
+        expirationDate:
+          type: string
+          format: date
+          description: The expiration date of the credential
+        uri:
+          type: string
+          format: uri
+          description: A URI for the credential
+        status:
+          type: string
+          description: The status of the credential
+        informationSourceId:
+          type: string
+          description: An identifier key representing the source
+        informationSourceOrganization:
+          type: string
+          description: The organization from which this data came
+        informationSourceSystem:
+          type: string
+          description: The specific information system from which this data came
+        deletedDate:
+          type: string
+          format: date
+        deletedStatus:
+          type: string
+      required:
+        - identifier

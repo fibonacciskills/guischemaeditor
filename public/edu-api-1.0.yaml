@@ -1,0 +1,651 @@
+openapi: 3.0.0
+info:
+  title: Edu-API
+  description: OpenAPI schema for Edu-API, a comprehensive education data interchange standard managed by 1EdTech. The Edu-API provides a standardized way to exchange educational data including academic sessions, organizations, persons, and course enrollments.
+  version: 1.0
+  contact:
+    name: 1EdTech
+    url: https://www.1edtech.org/standards/edu-api
+  license:
+    name: Creative Commons Attribution 4.0 International
+    url: https://creativecommons.org/licenses/by/4.0/
+
+servers:
+  - url: https://api.example.edu/edu-api
+    description: Production server
+  - url: https://staging.example.edu/edu-api
+    description: Staging server
+
+paths:
+  /academicsessions:
+    get:
+      summary: Retrieve Academic Sessions
+      description: Retrieve a list of academic sessions. An academic session is a calendar period during which a school or institution schedules classes, offerings, or other units of learning for availability.
+      operationId: listAcademicSessions
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful retrieval of academic sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AcademicSession'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+        '400':
+          description: Invalid query parameters
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create an Academic Session
+      description: Create a new academic session record
+      operationId: createAcademicSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicSession'
+      responses:
+        '201':
+          description: Academic session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicSession'
+        '400':
+          description: Invalid request body
+        '401':
+          description: Unauthorized
+
+  /academicsessions/{sourcedId}:
+    get:
+      summary: Retrieve an Academic Session by ID
+      description: Retrieve details of a specific academic session by its sourcedId
+      operationId: getAcademicSessionById
+      parameters:
+        - name: sourcedId
+          in: path
+          required: true
+          description: The sourcedId of the academic session
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Academic session found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicSession'
+        '404':
+          description: Academic session not found
+        '401':
+          description: Unauthorized
+
+  /persons:
+    get:
+      summary: Retrieve Persons
+      description: Retrieve a list of persons. A person represents a human being in the educational context.
+      operationId: listPersons
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful retrieval of persons
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Person'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+        '400':
+          description: Invalid query parameters
+        '401':
+          description: Unauthorized
+
+  /organizations:
+    get:
+      summary: Retrieve Organizations
+      description: Retrieve a list of organizations. An organization is an administrative unit within an educational institution.
+      operationId: listOrganizations
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful retrieval of organizations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Organization'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+        '400':
+          description: Invalid query parameters
+        '401':
+          description: Unauthorized
+
+  /enrollments:
+    get:
+      summary: Retrieve Enrollments
+      description: Retrieve a list of enrollments. An enrollment represents the joining of a person with a course or collection offering.
+      operationId: listEnrollments
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            default: 0
+        - name: enrollmentStatus
+          in: query
+          description: Filter by enrollment status
+          schema:
+            type: string
+            enum:
+              - pending
+              - cancelled
+              - suspended
+              - Interruption
+              - finished
+              - withdrawnFailing
+              - registered
+              - accepted
+              - dropped
+              - onLeave
+              - deferred
+              - revoked
+              - withdrawnPassing
+              - onHold
+              - withdrawn
+              - declined
+              - enrolled
+      responses:
+        '200':
+          description: Successful retrieval of enrollments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Enrollment'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+        '400':
+          description: Invalid query parameters
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create an Enrollment
+      description: Create a new enrollment record
+      operationId: createEnrollment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Enrollment'
+      responses:
+        '201':
+          description: Enrollment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+        '400':
+          description: Invalid request body
+        '401':
+          description: Unauthorized
+
+components:
+  schemas:
+    AcademicSession:
+      type: object
+      description: A calendar period during which a school or institution schedules classes, offerings, or other units of learning for availability.
+      properties:
+        sourcedId:
+          type: string
+          description: The sourcedId of the object. This is the interoperability identifier that systems will refer to when making API calls.
+        title:
+          type: array
+          description: A set of titles for the associated entity with a designated language for each entry.
+          items:
+            $ref: '#/components/schemas/LanguageTypedString'
+        startDate:
+          type: string
+          format: date-time
+          description: The start date of the associated academic session.
+        endDate:
+          type: string
+          format: date-time
+          description: The end date of the associated academic session.
+        sessionType:
+          type: string
+          enum:
+            - studyPeriod
+            - term
+            - gradingPeriod
+            - schoolYear
+            - semester
+          description: The type of academic session. This is based upon an enumerated vocabulary.
+        recordStatus:
+          type: string
+          enum:
+            - active
+            - inactive
+            - deleted
+          description: The status of this record. A record which is flagged 'toBeDeleted' is safe to delete.
+        parent:
+          type: string
+          description: A reference to another Edu-API Academic Session that serves as a parent session.
+
+    Person:
+      type: object
+      description: A Person represents a human being in the educational context, alive or deceased, real or imaginary.
+      properties:
+        sourcedId:
+          type: string
+          description: The sourcedId of the object. This is the interoperability identifier that systems will refer to when making API calls.
+        formattedName:
+          type: string
+          description: The long form formatted name, this will often be dependent on region or system requirements.
+        legalName:
+          $ref: '#/components/schemas/PersonName'
+        otherNames:
+          type: array
+          description: A list of other names for this person.
+          items:
+            $ref: '#/components/schemas/PersonNameEntry'
+        dateOfBirth:
+          type: string
+          format: date
+          description: The date of birth.
+        dateOfDeath:
+          type: string
+          format: date
+          description: The date of death. The presence of this property means that the person is known to be deceased.
+        gender:
+          type: string
+          enum:
+            - female
+            - other
+            - unspecified
+            - male
+          description: The gender of the individual based on an extensible enumerated vocabulary.
+        primaryEmail:
+          $ref: '#/components/schemas/OptionallyTypedEmail'
+        otherEmails:
+          type: array
+          description: Additional email addresses of a subject.
+          items:
+            $ref: '#/components/schemas/OptionallyTypedEmail'
+        primaryPhone:
+          $ref: '#/components/schemas/OptionallyTypedPhone'
+        otherPhones:
+          type: array
+          description: A list of other phone numbers.
+          items:
+            $ref: '#/components/schemas/OptionallyTypedPhone'
+        primaryAddress:
+          $ref: '#/components/schemas/OptionallyTypedAddress'
+        otherAddresses:
+          type: array
+          description: A list of other addresses.
+          items:
+            $ref: '#/components/schemas/OptionallyTypedAddress'
+        languagesSpoken:
+          type: array
+          description: The list of languages that this person speaks.
+          items:
+            type: string
+        dateLastModified:
+          type: string
+          format: date-time
+          description: A timestamp describing when this record was last modified.
+
+    Organization:
+      type: object
+      description: An administrative unit, it can be a division or subdivision of an institution or the institution itself.
+      properties:
+        sourcedId:
+          type: string
+          description: The sourcedId of the object. This is the interoperability identifier that systems will refer to when making API calls.
+        name:
+          type: array
+          description: A name for the associated entity with a designated language for each entry.
+          items:
+            $ref: '#/components/schemas/LanguageTypedString'
+        organizationType:
+          type: string
+          description: The type of organization.
+        parent:
+          type: string
+          description: A reference to a parent organization.
+        children:
+          type: array
+          description: References to child organizations.
+          items:
+            type: string
+        description:
+          type: array
+          description: A set of descriptions of the associated entity with a designated language for each entry.
+          items:
+            $ref: '#/components/schemas/LanguageTypedString'
+        dateLastModified:
+          type: string
+          format: date-time
+          description: A timestamp describing when this record was last modified.
+
+    Enrollment:
+      type: object
+      description: The contextualized joining of a person and a CourseOffering, CollectionOffering, or ComponentOffering.
+      properties:
+        sourcedId:
+          type: string
+          description: The sourcedId of the object. This is the interoperability identifier that systems will refer to when making API calls.
+        person:
+          type: string
+          description: A reference to an Edu-API Person.
+        educationOffering:
+          type: string
+          description: A reference to an Edu-API offering entity. This is the instantiated Education the person is being enrolled on.
+        role:
+          type: string
+          enum:
+            - teachingAssistant
+            - member
+            - teacher
+            - parent
+            - advisor
+            - proctor
+            - chair
+            - aide
+            - relative
+            - guardian
+            - administrator
+            - staff
+            - student
+          description: The role of the associated person in the given context.
+        enrollmentStatus:
+          type: string
+          enum:
+            - pending
+            - cancelled
+            - suspended
+            - Interruption
+            - finished
+            - withdrawnFailing
+            - registered
+            - accepted
+            - dropped
+            - onLeave
+            - deferred
+            - revoked
+            - withdrawnPassing
+            - onHold
+            - withdrawn
+            - declined
+            - enrolled
+          description: The status of this enrollment.
+        startDate:
+          type: string
+          format: date-time
+          description: The start date of the associated enrollment.
+        endDate:
+          type: string
+          format: date-time
+          description: The end date of the associated enrollment.
+        dateLastModified:
+          type: string
+          format: date-time
+          description: A timestamp describing when this record was last modified.
+
+    PersonName:
+      type: object
+      description: The set of parts that are used to define an Edu-API person's name.
+      properties:
+        givenName:
+          type: string
+          description: Given name. In the western world, often referred to as the 'first name'.
+        familyName:
+          type: string
+          description: Family name. In the western world, often referred to as the 'last name'.
+        additionalName:
+          type: string
+          description: Additional name. Includes what is often referred to as 'middle name'.
+        familyNamePrefix:
+          type: string
+          description: Family name prefix. As used in some locales, this is the leading part of a family name.
+        honorificPrefix:
+          type: string
+          description: Honorific prefix(es) preceding a person's name (e.g. 'Dr', 'Mrs' or 'Mr').
+        honorificSuffix:
+          type: string
+          description: Honorific suffix(es) following a person's name (e.g. 'M.D, PhD').
+        patronymicName:
+          type: string
+          description: Patronymic name.
+
+    PersonNameEntry:
+      type: object
+      description: The PersonNameEntry with type information.
+      properties:
+        givenName:
+          type: string
+          description: Given name.
+        familyName:
+          type: string
+          description: Family name.
+        additionalName:
+          type: string
+          description: Additional name.
+        familyNamePrefix:
+          type: string
+          description: Family name prefix.
+        honorificPrefix:
+          type: string
+          description: Honorific prefix(es).
+        honorificSuffix:
+          type: string
+          description: Honorific suffix(es).
+        patronymicName:
+          type: string
+          description: Patronymic name.
+        nameType:
+          type: string
+          enum:
+            - phoneticName
+            - aliasName
+            - legalName
+            - preferredName
+            - formerName
+          description: The type of name described in this entry.
+
+    LanguageTypedString:
+      type: object
+      description: A string with an associated language code.
+      properties:
+        value:
+          type: string
+          description: The string value.
+        recordLanguage:
+          type: string
+          description: The language code (e.g., en, es, fr).
+
+    OptionallyTypedEmail:
+      type: object
+      description: An optionally typed email address.
+      properties:
+        email:
+          type: string
+          format: email
+          description: An email address.
+        emailType:
+          type: string
+          enum:
+            - iceEmail
+            - workEmail
+            - homeEmail
+          description: The type of email address.
+
+    OptionallyTypedPhone:
+      type: object
+      description: An optionally typed phone number.
+      properties:
+        phone:
+          type: string
+          description: A phone number.
+        phoneType:
+          type: string
+          enum:
+            - homePhone
+            - icePhone
+            - workPhone
+          description: The type of phone number.
+
+    OptionallyTypedAddress:
+      type: object
+      description: An optionally typed address.
+      properties:
+        streetAddress:
+          type: string
+          description: A street address within the locality.
+        postalCode:
+          type: string
+          description: A postal code.
+        addressLocality:
+          type: string
+          description: A locality within the region.
+        addressRegion:
+          type: string
+          description: A region within the country.
+        addressCountry:
+          type: string
+          description: A country.
+        addressCountryCode:
+          type: string
+          description: An ISO 3166-1 alpha-2 country code.
+        addressType:
+          type: string
+          enum:
+            - formerAddress
+            - permanentAddress
+            - billingAddress
+            - workAddress
+            - visitingAddress
+            - deliveryAddress
+            - homeAddress
+            - mailingAddress
+          description: The type of address.
+
+    GeoCoordinates:
+      type: object
+      description: The geographic coordinates of a location.
+      properties:
+        latitude:
+          type: number
+          description: The latitude of the location (WGS-84).
+        longitude:
+          type: number
+          description: The longitude of the location (WGS-84).
+
+    PaginationInfo:
+      type: object
+      description: Pagination information for list responses.
+      properties:
+        limit:
+          type: integer
+          description: The maximum number of results returned.
+        offset:
+          type: integer
+          description: The number of results skipped.
+        totalCount:
+          type: integer
+          description: The total number of available results.
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication using JWT
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.example.edu/oauth/authorize
+          tokenUrl: https://auth.example.edu/oauth/token
+          scopes:
+            read:academicsessions: Read academic sessions
+            write:academicsessions: Write academic sessions
+            read:persons: Read person records
+            write:persons: Write person records
+            read:organizations: Read organization records
+            write:organizations: Write organization records
+            read:enrollments: Read enrollment records
+            write:enrollments: Write enrollment records
+
+security:
+  - BearerAuth: []
+  - OAuth2:
+      - read:academicsessions
+      - read:persons
+      - read:organizations
+      - read:enrollments

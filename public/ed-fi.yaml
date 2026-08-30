@@ -1,0 +1,653 @@
+openapi: 3.0.0
+info:
+  title: Ed-Fi Data Standard API
+  description: >-
+    Ed-Fi Data Standard — 201 entities, 1450 fields, 166 descriptors, 3104
+    descriptor values. Comprehensive education data standards for K-12 and higher
+    education institutions. This API provides access to core education data
+    elements including students, staff, academic performance, and attendance.
+  version: 1.0.0
+  contact:
+    name: Ed-Fi Alliance
+    url: https://www.ed-fi.org/
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://api.ed-fi.org/v7.0
+    description: Ed-Fi Data Standard API Production
+  - url: https://api.ed-fi.org/v7.0/sandbox
+    description: Ed-Fi Data Standard API Sandbox
+tags:
+  - name: Academic
+    description: Academic and course-related resources
+  - name: Assessment
+    description: Assessment and evaluation resources
+  - name: Attendance
+    description: Attendance tracking resources
+  - name: Organization
+    description: Education organization resources
+paths:
+  /academicWeeks:
+    get:
+      summary: List Academic Weeks
+      description: Retrieve a list of academic weeks for a school year
+      operationId: getAcademicWeeks
+      tags:
+        - Academic
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Start position for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+          description: Number of results to return
+      responses:
+        '200':
+          description: Successful response with list of academic weeks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AcademicWeek'
+        '401':
+          description: Unauthorized - authentication required
+        '400':
+          description: Bad request - invalid parameters
+    post:
+      summary: Create Academic Week
+      description: Create a new academic week record
+      operationId: createAcademicWeek
+      tags:
+        - Academic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicWeek'
+      responses:
+        '201':
+          description: Academic week created successfully
+        '400':
+          description: Bad request - invalid data
+        '409':
+          description: Conflict - record already exists
+  /assessments:
+    get:
+      summary: List Assessments
+      description: Retrieve a list of assessments with their properties
+      operationId: getAssessments
+      tags:
+        - Assessment
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+        - name: academicSubject
+          in: query
+          schema:
+            type: string
+          description: Filter by academic subject
+      responses:
+        '200':
+          description: Successful response with list of assessments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assessment'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create Assessment
+      description: Create a new assessment
+      operationId: createAssessment
+      tags:
+        - Assessment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Assessment'
+      responses:
+        '201':
+          description: Assessment created
+        '400':
+          description: Bad request
+  /courses:
+    get:
+      summary: List Courses
+      description: Retrieve a list of courses offered by an education organization
+      operationId: getCourses
+      tags:
+        - Academic
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+        - name: gradeLevel
+          in: query
+          schema:
+            type: string
+          description: Filter by grade level
+      responses:
+        '200':
+          description: Successful response with course list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create Course
+      description: Create a new course offering
+      operationId: createCourse
+      tags:
+        - Academic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '201':
+          description: Course created
+        '400':
+          description: Bad request
+  /attendanceEvents:
+    get:
+      summary: List Attendance Events
+      description: Retrieve attendance event records
+      operationId: getAttendanceEvents
+      tags:
+        - Attendance
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttendanceEvent'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create Attendance Event
+      description: Record a new attendance event
+      operationId: createAttendanceEvent
+      tags:
+        - Attendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceEvent'
+      responses:
+        '201':
+          description: Event recorded
+        '400':
+          description: Bad request
+components:
+  schemas:
+    AcademicHonor:
+      type: object
+      title: AcademicHonor
+      description: Ed-Fi entity representing academic honors or distinctions earned by individuals
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        academicHonorCategoryDescriptor:
+          type: string
+          description: A designation of the type of academic distinctions earned by or awarded to the individual
+          enum:
+            - Honor society
+            - Awarding of units of value
+            - National Merit Scholar
+            - Honor award
+            - Medals
+            - Completion of requirement, but no units awarded
+            - Scholarships
+            - Points
+            - Honorable mention
+            - Letter of student commendation
+            - Promotion or advancement
+            - Certificate
+            - Attendance award
+            - Other
+            - Honor roll
+            - Prize awards
+            - Citizenship award/recognition
+            - Honors program
+      required:
+        - id
+        - academicHonorCategoryDescriptor
+    AcademicWeek:
+      type: object
+      title: AcademicWeek
+      description: Entity representing the academic weeks for a school year, optionally captured to support analyses
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        beginDate:
+          type: string
+          format: date
+          description: The start date for the academic week. Date interpretation may vary - Ed-Fi recommends inclusive dates
+        endDate:
+          type: string
+          format: date
+          description: The end date for the academic week. Date interpretation may vary
+        weekIdentifier:
+          type: string
+          description: The school label for the week
+        totalInstructionalDays:
+          type: integer
+          format: int32
+          description: The total instructional days during the academic week
+      required:
+        - id
+        - beginDate
+        - endDate
+        - weekIdentifier
+    Assessment:
+      type: object
+      title: Assessment
+      description: Ed-Fi entity representing assessments used to measure student learning and achievement
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        assessmentIdentifier:
+          type: string
+          description: A unique number or alphanumeric code assigned to an assessment
+        assessmentTitle:
+          type: string
+          description: The title or name of the assessment
+        academicSubjectDescriptor:
+          type: string
+          description: The description of the content or subject area (e.g., arts, mathematics, reading) of an assessment
+          enum:
+            - Life and Physical Sciences
+            - Special Education
+            - Science
+            - Cross Subject
+            - Religious Education and Theology
+            - Multiple Subjects
+            - English
+            - Social Studies
+            - Bilingual
+            - Mathematics
+            - Social Sciences and History
+            - English Language Arts
+            - English Language Learners
+            - Writing
+            - Military Science
+            - Critical Reading
+            - Reading
+            - Foreign Language and Literature
+            - Fine and Performing Arts
+            - Career and Technical Education
+            - Physical, Health, and Safety Education
+            - Other
+            - Composite
+        gradeLevelDescriptor:
+          type: string
+          description: The grade level(s) for which an assessment is designed
+          enum:
+            - Eleventh grade
+            - Postsecondary
+            - Eighth grade
+            - Sixth grade
+            - Doctoral Program
+            - First grade
+            - Preschool
+            - Twelfth grade
+            - Master's Program
+            - Preschool/Prekindergarten
+            - Second grade
+            - Ninth grade
+            - Other
+            - Infant/toddler
+            - Early Education
+            - Junior
+            - Undergraduate
+            - Fifth grade
+            - Fourth grade
+            - Seventh grade
+            - Transitional Kindergarten
+            - Kindergarten
+            - Senior
+            - Out of School
+            - Grade 13
+            - Ungraded
+            - Professional Certification
+            - Adult Education
+            - Sophomore
+            - Tenth grade
+            - Freshman
+            - Third grade
+            - Prekindergarten
+            - No grade level
+            - Postbaccalaureate
+        maxRawScore:
+          type: integer
+          format: int32
+          description: The maximum raw score achievable across all assessment items that are correct
+        assessmentCategoryDescriptor:
+          type: string
+          description: The category of an assessment based on format and content
+        platformTypeDescriptor:
+          type: string
+          description: The platforms with which the assessment may be delivered
+          enum:
+            - Paper-based
+            - Computer-based
+        beginDate:
+          type: string
+          format: date
+          description: The first date the assessment is to be administered
+        endDate:
+          type: string
+          format: date
+          description: The last date the assessment is to be administered
+        version:
+          type: integer
+          format: int32
+          description: The version identifier for the assessment
+      required:
+        - id
+        - assessmentIdentifier
+        - assessmentTitle
+    AttendanceEvent:
+      type: object
+      title: AttendanceEvent
+      description: Ed-Fi entity representing attendance events and status codes
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        attendanceEventCategoryDescriptor:
+          type: string
+          description: A code describing the attendance event
+          enum:
+            - Tardy
+            - Excused Absence
+            - Present
+            - Early departure
+            - Partial
+            - Unexcused Absence
+            - In Attendance
+        educationalEnvironmentDescriptor:
+          type: string
+          description: The setting in which a child receives education and related services
+          enum:
+            - Single sex classroom
+            - Self-contained (Special Education)
+            - Classroom
+            - In-school suspension
+            - Laboratory
+            - Self-study
+            - Off-school center
+            - Pull-out class
+            - Hospital class
+            - Homebound
+            - Resource room
+            - Shop
+            - Mainstream (Special Education)
+      required:
+        - id
+        - attendanceEventCategoryDescriptor
+    Course:
+      type: object
+      title: Course
+      description: Entity representing a course of study offered by an education organization
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        courseCode:
+          type: string
+          description: A unique alphanumeric code assigned to a course
+        courseTitle:
+          type: string
+          description: The descriptive name given to a course of study offered in a school
+        courseDescription:
+          type: string
+          description: A description of the content standards and goals covered in the course
+        academicSubjectDescriptor:
+          type: string
+          description: The intended major subject area of the course
+          enum:
+            - Life and Physical Sciences
+            - Special Education
+            - Science
+            - English
+            - Social Studies
+            - Mathematics
+            - English Language Arts
+            - Fine and Performing Arts
+            - Career and Technical Education
+            - Physical, Health, and Safety Education
+        gradeLevelDescriptor:
+          type: string
+          description: The grade levels in which the course is offered
+          enum:
+            - Kindergarten
+            - First grade
+            - Second grade
+            - Third grade
+            - Fourth grade
+            - Fifth grade
+            - Sixth grade
+            - Seventh grade
+            - Eighth grade
+            - Ninth grade
+            - Tenth grade
+            - Eleventh grade
+            - Twelfth grade
+            - Postsecondary
+        credits:
+          type: number
+          format: double
+          description: The value of credits or units of value awarded for completion
+        numberOfParts:
+          type: integer
+          format: int32
+          description: The number of parts identified for a course
+        maxCompletionsForCredit:
+          type: integer
+          format: int32
+          description: Designates how many times the course may be taken with credit received
+        timeRequiredForCompletion:
+          type: integer
+          format: int32
+          description: The actual or estimated number of clock minutes required for class completion
+        highSchoolCourseRequirement:
+          type: boolean
+          description: An indication that this course may satisfy high school graduation requirements
+        courseLevelCharacteristicDescriptor:
+          type: string
+          description: The type of specific program or designation (e.g., AP, IB, Dual Credit, CTE)
+      required:
+        - id
+        - courseCode
+        - courseTitle
+    Address:
+      type: object
+      title: Address
+      description: Entity representing physical or mailing addresses
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        streetNumberName:
+          type: string
+          description: The street number and street name or post office box number
+        apartmentRoomSuiteNumber:
+          type: string
+          description: The apartment, room, or suite number
+        city:
+          type: string
+          description: The name of the city
+        stateAbbreviationDescriptor:
+          type: string
+          description: The abbreviation for the state
+          enum:
+            - AL
+            - AK
+            - AZ
+            - AR
+            - CA
+            - CO
+            - CT
+            - DE
+            - FL
+            - GA
+            - HI
+            - ID
+            - IL
+            - IN
+            - IA
+            - KS
+            - KY
+            - LA
+            - ME
+            - MD
+            - MA
+            - MI
+            - MN
+            - MS
+            - MO
+            - MT
+            - NE
+            - NV
+            - NH
+            - NJ
+            - NM
+            - NY
+            - NC
+            - ND
+            - OH
+            - OK
+            - OR
+            - PA
+            - RI
+            - SC
+            - SD
+            - TN
+            - TX
+            - UT
+            - VT
+            - VA
+            - WA
+            - WV
+            - WI
+            - WY
+            - DC
+        postalCode:
+          type: string
+          description: The five or nine digit zip code or overseas postal code
+        addressTypeDescriptor:
+          type: string
+          description: The type of address (Physical, Mailing, Home, Work, Temporary, etc.)
+          enum:
+            - Shipping
+            - Doubled - up (i.e., living with another family)
+            - Work
+            - Unsheltered
+            - Billing
+            - Mailing
+            - Mother Address
+            - Shelter, Transitional housing, Awaiting Foster
+            - Home
+            - Temporary
+            - Hotels/Motels
+            - Physical
+            - Other
+            - Father Address
+            - Guardian Address
+        localeDescriptor:
+          type: string
+          description: A general geographic indicator that categorizes U.S. territory
+          enum:
+            - City-Midsize
+            - City-Large
+            - Rural-Distant
+            - City-Small
+            - Town-Distant
+            - Suburban-Large
+            - Town-Fringe
+            - Suburban-Midsize
+            - Rural-Remote
+            - Rural-Fringe
+            - Town-Remote
+            - Suburban-Small
+        latitude:
+          type: number
+          format: double
+          description: The geographic latitude of the physical address
+        longitude:
+          type: number
+          format: double
+          description: The geographic longitude of the physical address
+      required:
+        - id
+        - city
+        - stateAbbreviationDescriptor
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: OAuth 2.0 authentication
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.ed-fi.org/oauth/token
+          scopes:
+            read:all: Read access to all resources
+            write:all: Write access to all resources
+            read:students: Read student resources
+            read:staff: Read staff resources
+security:
+  - oauth2:
+      - read:all

@@ -1,0 +1,995 @@
+openapi: 3.0.0
+info:
+  title: Open Badges API
+  description: OpenAPI schema for Open Badges OpenAPI 3.0.1 schema, version 3.0. A comprehensive standard for encoding and verifying digital credentials.
+  version: 3.0
+  contact:
+    name: 1EdTech
+    url: https://www.1edtech.org/spec/ob/v3p0
+  license:
+    name: 1EdTech
+    url: https://www.1edtech.org/spec/ob/v3p0
+
+servers:
+  - url: https://api.openbadges.org/v3
+    description: Open Badges API server
+
+paths:
+  /credentials:
+    post:
+      summary: Issue an Achievement Credential
+      operationId: issueCredential
+      description: Create and issue a new achievement credential with proof
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AchievementCredential'
+      responses:
+        '201':
+          description: Credential successfully created and issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AchievementCredential'
+        '400':
+          description: Invalid credential data
+        '401':
+          description: Unauthorized issuer
+
+  /credentials/{credentialId}:
+    get:
+      summary: Retrieve a Credential
+      operationId: getCredential
+      description: Get the details of a specific achievement credential
+      parameters:
+        - name: credentialId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uri
+          description: The unique URI identifier of the credential
+      responses:
+        '200':
+          description: Credential details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AchievementCredential'
+        '404':
+          description: Credential not found
+
+  /achievements:
+    post:
+      summary: Create an Achievement Definition
+      operationId: createAchievement
+      description: Define a new achievement that can be asserted in credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Achievement'
+      responses:
+        '201':
+          description: Achievement successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Achievement'
+        '400':
+          description: Invalid achievement data
+
+  /endorsements:
+    post:
+      summary: Create an Endorsement
+      operationId: createEndorsement
+      description: Issue an endorsement credential for achievements, credentials, or profiles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EndorsementCredential'
+      responses:
+        '201':
+          description: Endorsement credential successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EndorsementCredential'
+        '400':
+          description: Invalid endorsement data
+
+components:
+  schemas:
+    Achievement:
+      type: object
+      description: A collection of information about the accomplishment recognized by the Assertion. Many assertions may be created corresponding to one Achievement.
+      required:
+        - id
+        - type
+        - name
+      properties:
+        id:
+          type: string
+          format: uri
+          description: Unique URI for the Achievement
+        type:
+          type: array
+          description: The type MUST include the IRI 'Achievement'
+          items:
+            type: string
+          example:
+            - Achievement
+        name:
+          type: string
+          description: The name of the achievement
+        description:
+          type: string
+          description: A short description of the achievement
+        criteria:
+          $ref: '#/components/schemas/Criteria'
+        achievementType:
+          type: string
+          enum:
+            - MasterDegree
+            - ProfessionalDoctorate
+            - LearningProgram
+            - JourneymanCertificate
+            - GeneralEducationDevelopment
+            - DoctoralDegree
+            - ResearchDoctorate
+            - SecondarySchoolDiploma
+            - Membership
+            - License
+            - QualityAssuranceCredential
+            - MasterCertificate
+            - MicroCredential
+            - Fieldwork
+            - Assignment
+            - Course
+            - ApprenticeshipCertificate
+            - BachelorDegree
+            - CoCurricular
+            - CommunityService
+            - Diploma
+            - Degree
+            - AssociateDegree
+            - Certificate
+            - Badge
+            - Award
+            - Assessment
+            - Competency
+            - Certification
+            - CertificateOfCompletion
+          description: The type of achievement
+        version:
+          type: string
+          description: Version string for the Achievement
+        creator:
+          $ref: '#/components/schemas/Profile'
+        image:
+          $ref: '#/components/schemas/Image'
+        alignment:
+          type: array
+          description: Alignments to educational standards
+          items:
+            $ref: '#/components/schemas/Alignment'
+        tag:
+          type: array
+          description: Keywords that describe the achievement
+          items:
+            type: string
+        fieldOfStudy:
+          type: string
+          description: Category, subject, area of study, discipline, or general branch of knowledge
+        specialization:
+          type: string
+          description: Name given to the focus, concentration, or specific area of study
+        creditsAvailable:
+          type: number
+          description: Credit hours associated with this achievement
+        inLanguage:
+          type: string
+          description: The language of the achievement
+        humanCode:
+          type: string
+          description: Human readable code associated with an achievement
+        otherIdentifier:
+          type: array
+          items:
+            type: string
+          description: A list of identifiers for the described entity
+        resultDescription:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultDescription'
+          description: The set of result descriptions that may be asserted
+        endorsement:
+          type: array
+          items:
+            type: string
+          description: Endorsements signed with Data Integrity proof format
+        endorsementJwt:
+          type: array
+          items:
+            type: string
+          description: Endorsements signed with VC-JWT proof format
+        related:
+          type: array
+          items:
+            $ref: '#/components/schemas/Related'
+          description: Related achievements
+
+    AchievementCredential:
+      type: object
+      description: Representations of an awarded achievement, used to share information about an achievement belonging to one earner. Maps to a Verifiable Credential.
+      required:
+        - '@context'
+        - type
+        - issuer
+        - credentialSubject
+        - proof
+      properties:
+        '@context':
+          type: array
+          description: The JSON-LD context
+          items:
+            type: string
+          example:
+            - https://www.w3.org/ns/credentials/v2
+            - https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json
+        type:
+          type: array
+          description: The credential type must include VerifiableCredential and AchievementCredential
+          items:
+            type: string
+          example:
+            - VerifiableCredential
+            - AchievementCredential
+        id:
+          type: string
+          format: uri
+          description: Unambiguous reference to the credential
+        issuer:
+          oneOf:
+            - $ref: '#/components/schemas/Profile'
+            - type: string
+              format: uri
+          description: The individual, entity, or organization that issued the credential
+        credentialSubject:
+          $ref: '#/components/schemas/AchievementSubject'
+        credentialStatus:
+          $ref: '#/components/schemas/CredentialStatus'
+        credentialSchema:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialSchema'
+          description: Data schemas that provide verifiers with validation information
+        validFrom:
+          type: string
+          format: date-time
+          description: Timestamp of when the credential becomes valid
+        validUntil:
+          type: string
+          format: date-time
+          description: Timestamp when the credential is no longer valid
+        awardedDate:
+          type: string
+          format: date-time
+          description: Timestamp of when the credential was originally awarded
+        name:
+          type: string
+          description: The name of the credential for display purposes
+        description:
+          type: string
+          description: The short description of the credential for display purposes
+        image:
+          $ref: '#/components/schemas/Image'
+        evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evidence'
+          description: A description of the work that led to the credential
+        termsOfUse:
+          type: array
+          items:
+            $ref: '#/components/schemas/TermsOfUse'
+          description: Terms under which the credential was issued
+        refreshService:
+          $ref: '#/components/schemas/RefreshService'
+        proof:
+          type: array
+          items:
+            type: object
+          description: Embedded cryptographic proofs for detecting tampering
+        endorsement:
+          type: array
+          items:
+            type: string
+          description: Endorsements with Data Integrity proof format
+        endorsementJwt:
+          type: array
+          items:
+            type: string
+          description: Endorsements with VC-JWT proof format
+
+    AchievementSubject:
+      type: object
+      description: Information about the recipient of an achievement.
+      properties:
+        id:
+          type: string
+          format: uri
+          description: An identifier for the Credential Subject
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include AchievementSubject
+          example:
+            - AchievementSubject
+        achievement:
+          $ref: '#/components/schemas/Achievement'
+        identifier:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentifierEntry'
+          description: Other identifiers for the recipient
+        image:
+          $ref: '#/components/schemas/Image'
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/Result'
+          description: The set of results being asserted
+        licenseNumber:
+          type: string
+          description: The license number issued with this credential
+        role:
+          type: string
+          description: Role, position, or title of the learner
+        creditsEarned:
+          type: number
+          description: The number of credits earned
+        activityStartDate:
+          type: string
+          format: date-time
+          description: The datetime the activity started
+        activityEndDate:
+          type: string
+          format: date-time
+          description: The datetime the activity ended
+        term:
+          type: string
+          description: The academic term in which the achievement was earned
+        narrative:
+          type: string
+          description: A narrative connecting multiple pieces of evidence
+        source:
+          type: string
+          format: uri
+          description: The source of the subject information
+
+    Criteria:
+      type: object
+      description: Descriptive metadata about the achievements necessary to be recognized.
+      properties:
+        id:
+          type: string
+          format: uri
+          description: The URI of a webpage describing the criteria
+        narrative:
+          type: string
+          description: A narrative of what is needed to earn the achievement (Markdown allowed)
+
+    Evidence:
+      type: object
+      description: Descriptive metadata about evidence related to the achievement assertion.
+      properties:
+        id:
+          type: string
+          format: uri
+          description: The URL or Data URI of the evidence
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include Evidence
+          example:
+            - Evidence
+        name:
+          type: string
+          description: A descriptive title of the evidence
+        description:
+          type: string
+          description: A longer description of the evidence
+        narrative:
+          type: string
+          description: A narrative describing the evidence and achievement process
+        genre:
+          type: string
+          description: The type of evidence (e.g., Poetry, Prose, Film)
+        audience:
+          type: string
+          description: The intended audience for the evidence
+
+    Result:
+      type: object
+      description: Describes a result that was achieved.
+      properties:
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include Result
+          example:
+            - Result
+        resultDescription:
+          type: string
+          description: The id of the ResultDescription linked to this result
+        value:
+          type: string
+          description: The result value (e.g., 'A' for a grade)
+        status:
+          type: string
+          enum:
+            - InProgress
+            - Enrolled
+            - Provisional
+            - Completed
+            - Withdrew
+            - OnHold
+            - Failed
+          description: The status of the achievement
+        achievedLevel:
+          type: string
+          description: The id of the RubricCriterionLevel if result is a rubric level
+        alignment:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alignment'
+          description: Alignments specific to this result
+
+    ResultDescription:
+      type: object
+      description: Describes a possible achievement result.
+      required:
+        - id
+        - type
+      properties:
+        id:
+          type: string
+          format: uri
+          description: The unique URI for this result description
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include ResultDescription
+          example:
+            - ResultDescription
+        name:
+          type: string
+          description: The name of the result
+        resultType:
+          type: string
+          enum:
+            - GradePointAverage
+            - PerformanceLevel
+            - LetterGrade
+            - ScaledScore
+            - Result
+            - RawScore
+            - RubricCriterion
+            - RubricCriterionLevel
+            - Percent
+            - RubricScore
+            - Status
+            - PredictedScore
+          description: The type of result this description represents
+        allowedValue:
+          type: array
+          items:
+            type: string
+          description: An ordered list of allowed values
+        valueMin:
+          type: string
+          description: The minimum possible value
+        valueMax:
+          type: string
+          description: The maximum possible value
+        requiredValue:
+          type: string
+          description: A value required to pass
+        requiredLevel:
+          type: string
+          description: The id of the RubricCriterionLevel required to pass
+        rubricCriterionLevel:
+          type: array
+          items:
+            $ref: '#/components/schemas/RubricCriterionLevel'
+          description: Ordered array of rubric criterion levels
+        alignment:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alignment'
+          description: Alignments to external frameworks
+
+    Alignment:
+      type: object
+      description: Describes an alignment between an achievement and a node in an educational framework.
+      properties:
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include Alignment
+          example:
+            - Alignment
+        targetName:
+          type: string
+          description: Name of the alignment target
+        targetUrl:
+          type: string
+          format: uri
+          description: URL of the alignment target
+        targetDescription:
+          type: string
+          description: Short description of the alignment target
+        targetFramework:
+          type: string
+          description: Name of the framework
+        targetCode:
+          type: string
+          description: Framework-specific code for the target
+        targetType:
+          type: string
+          enum:
+            - ceasn:Competency
+            - CFItem
+            - ceterms:Credential
+            - CTDL
+            - CFRubric
+            - CFRubricCriterionLevel
+            - CFRubricCriterion
+          description: The type of the alignment target
+
+    RubricCriterionLevel:
+      type: object
+      description: Describes a rubric criterion level.
+      required:
+        - id
+        - type
+      properties:
+        id:
+          type: string
+          format: uri
+          description: The unique URI for this rubric criterion level
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include RubricCriterionLevel
+          example:
+            - RubricCriterionLevel
+        name:
+          type: string
+          description: The name of the rubric criterion level
+        description:
+          type: string
+          description: Description of the rubric criterion level
+        level:
+          type: string
+          description: The rubric performance level in terms of success
+        points:
+          type: string
+          description: Points associated with this level
+        alignment:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alignment'
+          description: Alignments to external framework levels
+
+    Profile:
+      type: object
+      description: A collection of information that describes the entity or organization using Open Badges.
+      required:
+        - id
+        - type
+      properties:
+        id:
+          type: string
+          format: uri
+          description: Unique URI for the Issuer/Profile file
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include Profile
+          example:
+            - Profile
+        name:
+          type: string
+          description: The name of the entity or organization
+        url:
+          type: string
+          format: uri
+          description: Homepage or social media profile
+        description:
+          type: string
+          description: A short description of the issuer entity or organization
+        email:
+          type: string
+          format: email
+          description: An email address
+        phone:
+          type: string
+          description: A phone number
+        image:
+          $ref: '#/components/schemas/Image'
+        givenName:
+          type: string
+          description: Given name (first name)
+        familyName:
+          type: string
+          description: Family name (last name)
+        patronymicName:
+          type: string
+          description: Patronymic name
+        additionalName:
+          type: string
+          description: Additional name (often middle name)
+        honorificPrefix:
+          type: string
+          description: Honorific prefix (Dr, Mrs, Mr)
+        honorificSuffix:
+          type: string
+          description: Honorific suffix (M.D, PhD)
+        familyNamePrefix:
+          type: string
+          description: Family name prefix
+        dateOfBirth:
+          type: string
+          format: date
+          description: Birthdate of the person
+        official:
+          type: string
+          description: Name of an authorized official
+        parentOrg:
+          $ref: '#/components/schemas/Profile'
+        address:
+          $ref: '#/components/schemas/Address'
+        otherIdentifier:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentifierEntry'
+          description: Other identifiers for the entity
+        endorsement:
+          type: array
+          items:
+            type: string
+          description: Endorsements with Data Integrity proof format
+        endorsementJwt:
+          type: array
+          items:
+            type: string
+          description: Endorsements with VC-JWT proof format
+
+    Address:
+      type: object
+      description: An address for the described entity.
+      properties:
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include Address
+          example:
+            - Address
+        streetAddress:
+          type: string
+          description: A street address
+        postOfficeBoxNumber:
+          type: string
+          description: A post office box number
+        addressLocality:
+          type: string
+          description: A locality within the region
+        addressRegion:
+          type: string
+          description: A region within the country
+        postalCode:
+          type: string
+          description: A postal code
+        addressCountry:
+          type: string
+          description: A country
+        addressCountryCode:
+          type: string
+          description: An ISO 3166-1 alpha-2 country code
+        geo:
+          $ref: '#/components/schemas/GeoCoordinates'
+
+    GeoCoordinates:
+      type: object
+      description: The geographic coordinates of a location.
+      properties:
+        type:
+          type: string
+          enum:
+            - GeoCoordinates
+          description: Must be GeoCoordinates
+        latitude:
+          type: number
+          description: The latitude of the location
+        longitude:
+          type: number
+          description: The longitude of the location
+
+    Image:
+      type: object
+      description: Metadata about images that represent assertions, achievements or profiles.
+      properties:
+        type:
+          type: string
+          enum:
+            - Image
+          description: Must be Image
+        id:
+          type: string
+          format: uri
+          description: The URI or Data URI of the image
+        caption:
+          type: string
+          description: The caption for the image
+
+    IdentifierEntry:
+      type: object
+      description: An identifier entry.
+      properties:
+        type:
+          type: string
+          enum:
+            - IdentifierEntry
+          description: Must be IdentifierEntry
+        identifier:
+          type: string
+          description: An identifier
+        identifierType:
+          type: string
+          enum:
+            - productId
+            - oneRosterSourcedId
+            - ltiContextId
+            - isbn
+            - ltiUserId
+            - systemId
+            - nationalIdentityNumber
+            - userName
+            - emailAddress
+            - issn
+            - sisSourcedId
+            - sourcedId
+            - lisSourcedId
+            - ltiToolId
+            - ltiDeploymentId
+            - name
+            - ltiPlatformId
+            - accountId
+          description: The identifier type
+
+    IdentityObject:
+      type: object
+      description: A collection of information about the recipient of an achievement.
+      properties:
+        type:
+          type: string
+          enum:
+            - IdentityObject
+          description: Must be IdentityObject
+        identityType:
+          type: string
+          enum:
+            - productId
+            - isbn
+            - ltiDeploymentId
+            - emailAddress
+            - ltiUserId
+            - userName
+            - accountId
+            - issn
+            - nationalIdentityNumber
+            - oneRosterSourcedId
+            - ltiContextId
+            - ltiPlatformId
+            - lisSourcedId
+            - sisSourcedId
+            - sourcedId
+            - systemId
+            - name
+            - identifier
+            - ltiToolId
+          description: The identity type
+        identityHash:
+          type: string
+          description: The identity hash or plaintext value
+        hashed:
+          type: boolean
+          description: Whether the identityHash value is hashed
+        salt:
+          type: string
+          description: The string used to salt the hash if applicable
+
+    CredentialStatus:
+      type: object
+      description: Information about the current status of a verifiable credential.
+      properties:
+        id:
+          type: string
+          format: uri
+          description: The URL of the issuer's credential status method
+        type:
+          type: string
+          description: The name of the credential status method
+
+    CredentialSchema:
+      type: object
+      description: Identify the type and location of a data schema.
+      properties:
+        id:
+          type: string
+          format: uri
+          description: The URI identifying the schema file
+        type:
+          type: string
+          description: The type of data schema validation
+
+    RefreshService:
+      type: object
+      description: Information used to refresh the verifiable credential.
+      properties:
+        id:
+          type: string
+          format: uri
+          description: The URL of the issuer's refresh service
+        type:
+          type: string
+          description: The name of the refresh service method
+
+    TermsOfUse:
+      type: object
+      description: Terms of use for a verifiable credential or presentation.
+      properties:
+        type:
+          type: string
+          description: The type of the terms of use
+        id:
+          type: string
+          format: uri
+          description: The URI identifying the term of use
+
+    EndorsementCredential:
+      type: object
+      description: A verifiable credential that asserts a claim about an entity.
+      required:
+        - '@context'
+        - type
+        - issuer
+        - credentialSubject
+        - proof
+      properties:
+        '@context':
+          type: array
+          items:
+            type: string
+          description: The JSON-LD context
+          example:
+            - https://www.w3.org/ns/credentials/v2
+            - https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include VerifiableCredential and EndorsementCredential
+          example:
+            - VerifiableCredential
+            - EndorsementCredential
+        id:
+          type: string
+          format: uri
+          description: Unambiguous reference to the credential
+        issuer:
+          oneOf:
+            - $ref: '#/components/schemas/Profile'
+            - type: string
+              format: uri
+          description: The endorser
+        credentialSubject:
+          $ref: '#/components/schemas/EndorsementSubject'
+        name:
+          type: string
+          description: The name of the credential for display purposes
+        description:
+          type: string
+          description: The short description of the credential
+        awardedDate:
+          type: string
+          format: date-time
+          description: Timestamp of when the credential was awarded
+        validFrom:
+          type: string
+          format: date-time
+          description: Timestamp of when the credential becomes valid
+        validUntil:
+          type: string
+          format: date-time
+          description: Timestamp when the credential is no longer valid
+        credentialStatus:
+          $ref: '#/components/schemas/CredentialStatus'
+        credentialSchema:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialSchema'
+          description: Data schemas for validation
+        termsOfUse:
+          type: array
+          items:
+            $ref: '#/components/schemas/TermsOfUse'
+          description: Terms under which the credential was issued
+        refreshService:
+          $ref: '#/components/schemas/RefreshService'
+        evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evidence'
+          description: Evidence supporting the endorsement
+        proof:
+          type: array
+          items:
+            type: object
+          description: Embedded cryptographic proofs
+
+    EndorsementSubject:
+      type: object
+      description: A collection of information about the subject of the endorsement.
+      properties:
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include EndorsementSubject
+          example:
+            - EndorsementSubject
+        id:
+          type: string
+          format: uri
+          description: The identifier of the endorsed entity
+        endorsementComment:
+          type: string
+          description: A simple claim in writing about the entity
+
+    Related:
+      type: object
+      description: Identifies a related achievement.
+      properties:
+        type:
+          type: array
+          items:
+            type: string
+          description: Must include Related
+          example:
+            - Related
+        id:
+          type: string
+          format: uri
+          description: The related achievement
+        version:
+          type: string
+          description: The version of the related achievement
+        inLanguage:
+          type: string
+          description: The language of the related achievement

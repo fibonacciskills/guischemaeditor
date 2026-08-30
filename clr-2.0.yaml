@@ -1,0 +1,559 @@
+openapi: 3.0.0
+info:
+  title: Comprehensive Learner Record (CLR) API
+  version: '2.0'
+  description: |
+    The Comprehensive Learner Record (CLR) standard provides a unified structure for capturing and exchanging learner information across educational systems. This OpenAPI specification defines the standard entities, properties, and relationships within the CLR data model as defined by the EDUcore standards knowledge graph.
+  contact:
+    name: EDUcore Standards
+    url: 'https://educore.org'
+  license:
+    name: Creative Commons Attribution 4.0 International
+    url: 'https://creativecommons.org/licenses/by/4.0/'
+  x-standard:
+    source: CLR
+    namespace: 'http://www.imsglobal.org/spec/clr/v2p0'
+
+servers:
+  - url: 'https://api.example.com/clr/v2'
+    description: Comprehensive Learner Record API Server
+    variables:
+      basePath:
+        default: /clr/v2
+
+paths:
+  /learners:
+    get:
+      summary: List learners
+      operationId: listLearners
+      tags:
+        - Learners
+      parameters:
+        - name: skip
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of records to skip
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Maximum number of records to return
+      responses:
+        '200':
+          description: Successful response with learner list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Learner'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      summary: Create a new learner record
+      operationId: createLearner
+      tags:
+        - Learners
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Learner'
+      responses:
+        '201':
+          description: Learner created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Learner'
+        '400':
+          description: Invalid learner data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /learners/{learnerId}:
+    parameters:
+      - name: learnerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Unique identifier of the learner
+    get:
+      summary: Get learner details
+      operationId: getLearner
+      tags:
+        - Learners
+      responses:
+        '200':
+          description: Learner details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Learner'
+        '404':
+          description: Learner not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update learner record
+      operationId: updateLearner
+      tags:
+        - Learners
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Learner'
+      responses:
+        '200':
+          description: Learner updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Learner'
+        '400':
+          description: Invalid learner data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /learners/{learnerId}/achievements:
+    parameters:
+      - name: learnerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: List learner achievements
+      operationId: listAchievements
+      tags:
+        - Achievements
+      responses:
+        '200':
+          description: List of learner achievements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Achievement'
+    post:
+      summary: Add achievement to learner record
+      operationId: createAchievement
+      tags:
+        - Achievements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Achievement'
+      responses:
+        '201':
+          description: Achievement added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Achievement'
+
+  /learners/{learnerId}/competencies:
+    parameters:
+      - name: learnerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: List learner competencies
+      operationId: listCompetencies
+      tags:
+        - Competencies
+      responses:
+        '200':
+          description: List of learner competencies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Competency'
+
+components:
+  schemas:
+    Learner:
+      type: object
+      description: A learner record containing demographic, educational, and achievement information
+      required:
+        - id
+        - firstName
+        - lastName
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the learner
+        firstName:
+          type: string
+          description: Given name of the learner
+          maxLength: 255
+        lastName:
+          type: string
+          description: Family name of the learner
+          maxLength: 255
+        middleName:
+          type: string
+          description: Middle name(s) of the learner
+          maxLength: 255
+        dateOfBirth:
+          type: string
+          format: date
+          description: Date of birth of the learner (YYYY-MM-DD)
+        gender:
+          type: string
+          enum:
+            - Male
+            - Female
+            - Other
+            - Prefer Not to Disclose
+          description: Gender identity of the learner
+        email:
+          type: string
+          format: email
+          description: Primary email address of the learner
+        phoneNumber:
+          type: string
+          description: Contact phone number
+          pattern: '^\+?[1-9]\d{1,14}$'
+        address:
+          $ref: '#/components/schemas/Address'
+        schoolId:
+          type: string
+          description: Identifier of the school or institution
+        enrollmentStatus:
+          type: string
+          enum:
+            - Active
+            - Inactive
+            - Graduated
+            - Withdrawn
+            - OnLeave
+          description: Current enrollment status
+        gradeLevel:
+          type: string
+          description: Current grade or level
+        learningProgram:
+          type: string
+          description: Name or identifier of learning program
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the record was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the record was last updated
+        achievements:
+          type: array
+          description: Array of achievements earned by the learner
+          items:
+            $ref: '#/components/schemas/Achievement'
+        competencies:
+          type: array
+          description: Array of competencies demonstrated by the learner
+          items:
+            $ref: '#/components/schemas/Competency'
+
+    Address:
+      type: object
+      description: Physical address information
+      properties:
+        street:
+          type: string
+          description: Street address
+        city:
+          type: string
+          description: City or locality
+        stateProvince:
+          type: string
+          description: State or province
+        postalCode:
+          type: string
+          description: Postal or zip code
+        country:
+          type: string
+          description: Country code (ISO 3166-1 alpha-2)
+          minLength: 2
+          maxLength: 2
+        addressType:
+          type: string
+          enum:
+            - Home
+            - School
+            - Work
+            - Mailing
+            - Billing
+          description: Type of address
+
+    Achievement:
+      type: object
+      description: An achievement or award earned by a learner, including badges, certificates, or credentials
+      required:
+        - id
+        - name
+        - awardDate
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the achievement
+        name:
+          type: string
+          description: Name or title of the achievement
+          maxLength: 500
+        description:
+          type: string
+          description: Detailed description of the achievement
+        achievementType:
+          type: string
+          enum:
+            - Badge
+            - Certificate
+            - Credential
+            - Award
+            - Qualification
+            - Competency
+          description: Type of achievement
+        awardDate:
+          type: string
+          format: date
+          description: Date the achievement was awarded
+        issuer:
+          type: string
+          description: Name or identifier of the issuing organization
+        issuerUrl:
+          type: string
+          format: uri
+          description: URL of the issuing organization
+        evidenceUrl:
+          type: string
+          format: uri
+          description: URL to evidence supporting the achievement
+        criteria:
+          type: string
+          description: Criteria or standards used to evaluate this achievement
+        alignments:
+          type: array
+          description: Alignments to standards or competencies
+          items:
+            $ref: '#/components/schemas/Alignment'
+        status:
+          type: string
+          enum:
+            - Awarded
+            - Pending
+            - Revoked
+            - Expired
+          description: Current status of the achievement
+        expirationDate:
+          type: string
+          format: date
+          description: Date the achievement expires, if applicable
+        metadata:
+          type: object
+          description: Additional metadata as key-value pairs
+          additionalProperties: true
+
+    Competency:
+      type: object
+      description: A competency or skill demonstrated or mastered by a learner
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the competency
+        name:
+          type: string
+          description: Name of the competency
+          maxLength: 255
+        description:
+          type: string
+          description: Detailed description of the competency
+        framework:
+          type: string
+          description: Competency framework or taxonomy this competency belongs to
+        level:
+          type: string
+          enum:
+            - Novice
+            - Beginner
+            - Intermediate
+            - Advanced
+            - Expert
+          description: Proficiency level
+        levelScore:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Numerical score for the competency level (0-100)
+        category:
+          type: string
+          description: Category or domain of the competency
+        measuredDate:
+          type: string
+          format: date
+          description: Date the competency was measured or assessed
+        assessmentMethod:
+          type: string
+          description: Method used to assess the competency
+        evidence:
+          type: array
+          description: Evidence supporting the competency assessment
+          items:
+            type: object
+            properties:
+              description:
+                type: string
+              url:
+                type: string
+                format: uri
+              type:
+                type: string
+                enum:
+                  - Portfolio
+                  - Test
+                  - Project
+                  - Performance
+                  - Observation
+                  - Self-Assessment
+        alignments:
+          type: array
+          description: Alignments to standards or learning outcomes
+          items:
+            $ref: '#/components/schemas/Alignment'
+
+    Alignment:
+      type: object
+      description: An alignment to a standard, framework, or learning outcome
+      properties:
+        targetId:
+          type: string
+          description: Identifier of the aligned standard or outcome
+        targetName:
+          type: string
+          description: Name of the aligned standard or outcome
+        framework:
+          type: string
+          description: Framework or standard system name
+        url:
+          type: string
+          format: uri
+          description: URL of the standard or framework
+        alignmentType:
+          type: string
+          enum:
+            - Exact
+            - Close
+            - Related
+            - Prerequisite
+          description: Type of alignment relationship
+
+    Pagination:
+      type: object
+      description: Pagination information for list responses
+      properties:
+        totalCount:
+          type: integer
+          description: Total number of records available
+        skip:
+          type: integer
+          description: Number of records skipped
+        limit:
+          type: integer
+          description: Maximum records requested
+        hasMore:
+          type: boolean
+          description: Whether more records are available
+
+    Error:
+      type: object
+      description: Error response
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code identifier
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the error occurred
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized access
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad request or validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Learners
+    description: Operations related to learner records
+  - name: Achievements
+    description: Operations related to learner achievements and credentials
+  - name: Competencies
+    description: Operations related to learner competencies and skills

@@ -1,0 +1,487 @@
+openapi: 3.0.0
+info:
+  title: Common Education Data Standards (CEDS)
+  version: 14.0.0
+  description: >
+    Common Education Data Standards ontology, version 14.0.0.0. CEDS provides
+    a common set of data standards for the education industry to ensure interoperability
+    across systems and improve data quality.
+  contact:
+    name: CEDS
+    url: https://w3id.org/CEDStandards/terms/
+  license:
+    name: CC BY-SA 4.0
+    url: https://creativecommons.org/licenses/by-sa/4.0/
+
+servers:
+  - url: https://w3id.org/CEDStandards
+    description: CEDS Standards Server
+
+tags:
+  - name: Accessibility
+    description: Accessibility features and accommodations
+  - name: Activity
+    description: Educational activities and memberships
+  - name: Assessment
+    description: Assessment-related entities
+  - name: Course
+    description: Course and instructional entities
+
+paths:
+  /accessibility-features:
+    get:
+      tags:
+        - Accessibility
+      summary: List accessibility features
+      description: Retrieve a list of accessibility features available in the system
+      operationId: listAccessibilityFeatures
+      responses:
+        '200':
+          description: Successful retrieval of accessibility features
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessibilityFeature'
+    post:
+      tags:
+        - Accessibility
+      summary: Create accessibility feature
+      description: Create a new accessibility feature record
+      operationId: createAccessibilityFeature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessibilityFeature'
+      responses:
+        '201':
+          description: Accessibility feature created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessibilityFeature'
+
+  /activities:
+    get:
+      tags:
+        - Activity
+      summary: List activities
+      description: Retrieve a list of organized activities offered at education institutions
+      operationId: listActivities
+      responses:
+        '200':
+          description: Successful retrieval of activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+    post:
+      tags:
+        - Activity
+      summary: Create activity
+      description: Create a new activity record
+      operationId: createActivity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Activity'
+      responses:
+        '201':
+          description: Activity created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+
+  /assessments:
+    get:
+      tags:
+        - Assessment
+      summary: List assessments
+      description: Retrieve a list of assessments
+      operationId: listAssessments
+      responses:
+        '200':
+          description: Successful retrieval of assessments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assessment'
+    post:
+      tags:
+        - Assessment
+      summary: Create assessment
+      description: Create a new assessment record
+      operationId: createAssessment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Assessment'
+      responses:
+        '201':
+          description: Assessment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+
+  /courses:
+    get:
+      tags:
+        - Course
+      summary: List courses
+      description: Retrieve a list of courses
+      operationId: listCourses
+      responses:
+        '200':
+          description: Successful retrieval of courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+    post:
+      tags:
+        - Course
+      summary: Create course
+      description: Create a new course record
+      operationId: createCourse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '201':
+          description: Course created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+
+components:
+  schemas:
+    AccessibilityFeature:
+      type: object
+      description: >
+        Information defining the type of design elements or functionalities
+        integrated into products, services, or environments to ensure equitable
+        access for all individuals, aiming to eliminate barriers and facilitate ease of use.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the accessibility feature
+        accessibilityFeatureType:
+          type: string
+          description: The type of design elements or functionalities integrated into products
+        breakType:
+          type: string
+          description: The type of designated pause allowing the individual to temporarily suspend activities
+        breakDuration:
+          type: integer
+          format: int32
+          description: The duration of the pause, recorded in minutes
+        assessmentExtendedTimeDuration:
+          type: integer
+          format: int32
+          description: Additional time, recorded in minutes, to complete an assessment beyond the standard duration
+        accessibilityFeatureOtherDescription:
+          type: string
+          description: The description of the accessibility feature when 'Accessibility Feature Type' is set to 'Other'
+        adaptiveAndSpecializedEquipmentDescription:
+          type: string
+          description: The description of the furniture or equipment used to address physical or sensory needs
+        readAloudType:
+          type: string
+          description: The method in which the text is read aloud to the person
+        brailleVersionType:
+          type: string
+          description: A tactile system used by people with visual impairments
+        hasAccessibilityFeatureEmbeddedIndicator:
+          type: boolean
+          description: An indication whether this accessibility feature is embedded
+        hasAccessibilityFeaturePausesTheClockIndicator:
+          type: boolean
+          description: An indication of whether the accessibility feature stops the predetermined amount of time
+
+    AccessibilityFeatureRelationship:
+      type: object
+      description: Information about the relationship between two accessibility features.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the relationship
+        accessibilityFeatureRelationshipType:
+          type: string
+          description: The type of relationship between two accessibility features
+
+    Activity:
+      type: object
+      description: >
+        An organized activity, such as a co-curricular or extra-curricular
+        activity that is offered at an education institution.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the activity
+        activityDescription:
+          type: string
+          description: A description of the events and procedures that take place under the purview of an organized activity
+
+    ActivityMembership:
+      type: object
+      description: >
+        A specific type of Membership that represents a person's association
+        with an organized activity within an educational organization.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the activity membership
+        activityInvolvementBeginDate:
+          type: string
+          format: date-time
+          description: The year, month and day on which the person began to participate in the activity
+        activityInvolvementEndDate:
+          type: string
+          format: date-time
+          description: The year, month and day on which the person ceased to participate in the activity
+
+    Assessment:
+      type: object
+      description: >
+        An organized procedure or test, based on specified standards,
+        that measures the knowledge, skills, abilities, or attitudes of individuals.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the assessment
+        assessmentType:
+          type: string
+          enum:
+            - Achievement test
+            - Cognitive and perceptual skills test
+            - Diagnostic
+            - Formative
+            - Growth Measure
+            - Interim
+            - Language proficiency test
+            - Performance assessment
+            - Portfolio assessment
+            - Screening
+            - Other
+          description: The type of assessment
+        assessmentPurpose:
+          type: string
+          enum:
+            - State accountability
+            - Local accountability
+            - Federal accountability
+            - State graduation requirement
+            - Local graduation requirement
+            - College Readiness
+            - Admission
+            - Course credit
+            - Program placement
+            - Program eligibility
+            - Diagnosis
+            - Screening
+            - Instructional decision
+            - Assessment of student's progress
+            - Promotion to or retention in a grade or program
+            - Other
+          description: The purpose of the assessment
+
+    Course:
+      type: object
+      description: >
+        A structured sequence of instruction that typically has as its objective
+        the development of students' knowledge, skills, and understanding.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the course
+        courseCode:
+          type: string
+          description: The code assigned to identify the course by a school system
+        courseCodeSystem:
+          type: string
+          enum:
+            - School course code
+            - LEA course code
+            - State course code
+            - University course code
+            - Intermediate agency course code
+            - Other
+          description: The coding system used to identify the course
+        courseLevelCharacteristic:
+          type: string
+          enum:
+            - Basic course
+            - Career and technical education general course
+            - College-level course
+            - Dual enrollment
+            - English Learner course
+            - General course
+            - Gifted and talented course
+            - Honors level course
+            - International Baccalaureate course
+            - Pre-advanced placement
+            - Advanced placement course
+            - Remedial course
+            - Untracked course
+            - Other
+          description: The level or difficulty of the course
+        courseTitle:
+          type: string
+          description: The descriptive name given to a course of study offered in a school or other educational institution
+        courseCreditUnits:
+          type: string
+          enum:
+            - Carnegie Units
+            - Clock Hours
+            - Continuing Education Units
+            - No Credit
+            - Quarter
+            - Semester
+            - Units
+            - Other
+          description: The unit type used for course credit
+        courseAlignedWithStandards:
+          type: string
+          enum:
+            - "Yes"
+            - "No"
+          description: Whether the course is aligned with standards
+        courseGradePointAverageApplicability:
+          type: string
+          enum:
+            - Applicable in GPA
+            - Not Applicable in GPA
+            - Weighted in GPA
+          description: The extent to which the course is weighted in computing a student's grade point average
+
+    AdministrativeFundingControl:
+      type: object
+      description: The source of funding and/or the administrative control of an education institution.
+      properties:
+        id:
+          type: string
+          format: uuid
+        administrativeFundingControl:
+          type: string
+          enum:
+            - Public School
+            - Private School
+            - Other
+          description: The funding and administrative control type
+
+    AcademicAwardLevel:
+      type: object
+      description: The level of academic award conferred to a learner.
+      properties:
+        id:
+          type: string
+          format: uuid
+        academicAwardLevel:
+          type: string
+          enum:
+            - Bachelor's Degree
+            - Postsecondary award, certificate, or diploma of at least 2 but less than 4 academic years
+            - Associate's Degree
+            - Doctor's Degree-Other
+            - Postsecondary award, certificate, or diploma of at least 1 but less than 2 academic years
+            - Postbaccalaureate Certificate
+            - Doctor's Degree-Professional Practice
+            - Master's Degree
+            - Doctor's Degree-Research/Scholarship
+            - Postsecondary award, certificate, or diploma of less than 1 academic year
+            - Post-Master's Certificate
+          description: The academic award level conferred
+
+    AcademicHonors:
+      type: object
+      description: Recognition earned by a student for outstanding academic achievement.
+      properties:
+        id:
+          type: string
+          format: uuid
+        academicHonorsType:
+          type: string
+          enum:
+            - Citizenship award/recognition
+            - Attendance award
+            - Promotion or advancement
+            - National Merit scholar
+            - Medals
+            - Completion of requirement, but no units of value awarded
+            - Honor award
+            - Honor society
+            - Other
+            - Scholarships
+            - Certificate
+            - Honor roll
+            - Honorable mention
+            - Honors program
+            - Awarding of units of value
+            - Prize awards
+            - Points
+            - Letter of student commendation
+            - National Technical Education Honor Society
+          description: The type of academic honors
+
+    AddressType:
+      type: object
+      description: The type of address for a learner or family member.
+      properties:
+        id:
+          type: string
+          format: uuid
+        addressType:
+          type: string
+          enum:
+            - Mother's address
+            - Guardian's address
+            - On campus
+            - Billing address
+            - Permanent, at time of admission
+            - Father's address
+            - Mailing
+            - Off-campus, temporary
+            - Permanent, student
+            - Shipping
+            - Physical
+          description: The type of address
+
+    CareerAndTechnicalEducation:
+      type: object
+      description: >
+        Information related to a student's participation in Career and Technical Education (CTE) programs.
+      properties:
+        id:
+          type: string
+          format: uuid
+        concentrator:
+          type: boolean
+          description: Whether the student is a CTE concentrator
+        completer:
+          type: boolean
+          description: Whether the student is a CTE completer

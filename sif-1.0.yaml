@@ -1,0 +1,891 @@
+openapi: 3.0.0
+info:
+  title: SIF Implementation Specification
+  description: SIF Implementation Specification — 159 objects, 15620 fields. Complete education data standard for K-12 and higher education systems.
+  version: '1.0'
+  contact:
+    name: SIF Association
+    url: 'https://www.sifassociation.org'
+  license:
+    name: SIF Open Source License
+    url: 'https://www.sifassociation.org/licensing'
+
+servers:
+  - url: 'https://api.sif.org/v1'
+    description: SIF API Server
+  - url: 'http://localhost:8080/sif/v1'
+    description: Local Development Server
+
+tags:
+  - name: Student Data
+    description: Student information and academic records
+  - name: School Information
+    description: School, district, and LEA information
+  - name: Staff Data
+    description: Staff and personnel information
+  - name: Assessment Data
+    description: Student assessment and test results
+  - name: Attendance
+    description: Attendance tracking and records
+  - name: Discipline
+    description: Student discipline and incident reporting
+
+paths:
+  '/StudentPersonal/{id}':
+    get:
+      summary: Retrieve student personal information
+      operationId: getStudentPersonal
+      tags:
+        - Student Data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student unique identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student personal information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentPersonal'
+        '404':
+          description: Student not found
+        '500':
+          description: Internal server error
+    put:
+      summary: Update student personal information
+      operationId: updateStudentPersonal
+      tags:
+        - Student Data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student unique identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentPersonal'
+      responses:
+        '200':
+          description: Student information updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentPersonal'
+        '400':
+          description: Invalid request
+        '404':
+          description: Student not found
+
+  '/SchoolInfo/{id}':
+    get:
+      summary: Retrieve school information
+      operationId: getSchoolInfo
+      tags:
+        - School Information
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: School unique identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: School information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolInfo'
+        '404':
+          description: School not found
+
+  '/LEAInfo/{id}':
+    get:
+      summary: Retrieve Local Education Agency (LEA) information
+      operationId: getLEAInfo
+      tags:
+        - School Information
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: LEA unique identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: LEA information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LEAInfo'
+        '404':
+          description: LEA not found
+
+  '/StaffPersonal/{id}':
+    get:
+      summary: Retrieve staff personal information
+      operationId: getStaffPersonal
+      tags:
+        - Staff Data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Staff unique identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Staff personal information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffPersonal'
+        '404':
+          description: Staff member not found
+
+components:
+  schemas:
+    StudentPersonal:
+      type: object
+      title: StudentPersonal
+      description: 'SIF object: Student information including name, contact, and identification data'
+      required:
+        - '@RefId'
+        - Name
+      properties:
+        '@RefId':
+          type: string
+          format: uuid
+          description: GUID that uniquely identifies the student
+        '@AddressRole':
+          type: string
+          description: 'The type or function of the address, e.g., summer address, mailing address, residential address, etc.'
+          enum:
+            - Physical
+            - Mailing
+            - Billing
+            - Shipping
+            - Home
+            - Work
+            - School
+        Name:
+          $ref: '#/components/schemas/Name'
+        AddressList:
+          $ref: '#/components/schemas/AddressList'
+        PhoneNumberList:
+          $ref: '#/components/schemas/PhoneNumberList'
+        EmailList:
+          $ref: '#/components/schemas/EmailList'
+        Demographics:
+          $ref: '#/components/schemas/Demographics'
+        EnrollmentHistory:
+          type: array
+          description: Student enrollment history
+          items:
+            $ref: '#/components/schemas/EnrollmentRecord'
+        AcademicPerformanceSummary:
+          $ref: '#/components/schemas/AcademicPerformanceSummary'
+        '@Codeset':
+          type: string
+          format: uri
+          description: A unique indicator (usually a URL) that points to the codeset used
+        '@Type':
+          type: string
+          description: Type of student record
+          enum:
+            - PermanentStudent
+            - Transfer
+            - NewEnrollment
+
+    SchoolInfo:
+      type: object
+      title: SchoolInfo
+      description: 'SIF object: School facility and operational information'
+      required:
+        - '@RefId'
+        - SchoolName
+      properties:
+        '@RefId':
+          type: string
+          format: uuid
+          description: GUID that uniquely identifies the school
+        '@Code':
+          type: string
+          description: Code indicating which identification system is used
+          enum:
+            - Federal
+            - State
+            - District
+            - School
+            - NCES
+            - SCED
+            - Local
+            - Other
+        SchoolName:
+          type: string
+          description: Official name of the school
+        SchoolType:
+          type: string
+          description: Type of school
+          enum:
+            - PublicSchool
+            - CharterSchool
+            - PrivateSchool
+            - ReligiousSchool
+            - VirtualSchool
+        AddressList:
+          $ref: '#/components/schemas/AddressList'
+        PhoneNumberList:
+          $ref: '#/components/schemas/PhoneNumberList'
+        GradeRange:
+          type: object
+          description: Grade levels served by the school
+          properties:
+            LowestGrade:
+              type: string
+              description: Lowest grade level
+              enum:
+                - 'PK'
+                - 'KG'
+                - '01'
+                - '02'
+                - '03'
+                - '04'
+                - '05'
+                - '06'
+                - '07'
+                - '08'
+                - '09'
+                - '10'
+                - '11'
+                - '12'
+                - '13'
+                - 'PS'
+                - 'UG'
+                - Other
+            HighestGrade:
+              type: string
+              description: Highest grade level
+              enum:
+                - 'PK'
+                - 'KG'
+                - '01'
+                - '02'
+                - '03'
+                - '04'
+                - '05'
+                - '06'
+                - '07'
+                - '08'
+                - '09'
+                - '10'
+                - '11'
+                - '12'
+                - '13'
+                - 'PS'
+                - 'UG'
+                - Other
+        StateProvince:
+          type: string
+          description: State or province code
+          enum:
+            - 'AL'
+            - 'AK'
+            - 'AZ'
+            - 'AR'
+            - 'CA'
+            - 'CO'
+            - 'CT'
+            - 'DE'
+            - 'FL'
+            - 'GA'
+            - 'HI'
+            - 'ID'
+            - 'IL'
+            - 'IN'
+            - 'IA'
+            - 'KS'
+            - 'KY'
+            - 'LA'
+            - 'ME'
+            - 'MD'
+            - 'MA'
+            - 'MI'
+            - 'MN'
+            - 'MS'
+            - 'MO'
+            - 'MT'
+            - 'NE'
+            - 'NV'
+            - 'NH'
+            - 'NJ'
+            - 'NM'
+            - 'NY'
+            - 'NC'
+            - 'ND'
+            - 'OH'
+            - 'OK'
+            - 'OR'
+            - 'PA'
+            - 'RI'
+            - 'SC'
+            - 'SD'
+            - 'TN'
+            - 'TX'
+            - 'UT'
+            - 'VT'
+            - 'VA'
+            - 'WA'
+            - 'WV'
+            - 'WI'
+            - 'WY'
+            - 'DC'
+            - 'VI'
+            - 'PR'
+            - 'GU'
+            - 'AS'
+            - 'MP'
+        StateANSICode:
+          type: string
+          description: State ANSI numeric code
+          enum:
+            - '01'
+            - '02'
+            - '04'
+            - '05'
+            - '06'
+            - '08'
+            - '09'
+            - '10'
+            - '11'
+            - '12'
+            - '13'
+            - '15'
+            - '16'
+            - '17'
+            - '18'
+            - '19'
+            - '20'
+            - '21'
+            - '22'
+            - '23'
+            - '24'
+            - '25'
+            - '26'
+            - '27'
+            - '28'
+            - '29'
+            - '30'
+            - '31'
+            - '32'
+            - '33'
+            - '34'
+            - '35'
+            - '36'
+            - '37'
+            - '38'
+            - '39'
+            - '40'
+            - '41'
+            - '42'
+            - '44'
+            - '45'
+            - '46'
+            - '47'
+            - '48'
+            - '49'
+            - '50'
+            - '51'
+            - '53'
+            - '54'
+            - '55'
+            - '56'
+
+    LEAInfo:
+      type: object
+      title: LEAInfo
+      description: 'SIF object: Local Education Agency (district) information'
+      required:
+        - '@RefId'
+        - LEAName
+      properties:
+        '@RefId':
+          type: string
+          format: uuid
+          description: GUID that uniquely identifies the LEA
+        '@Code':
+          type: string
+          description: Code indicating which identification system is used
+        LEAName:
+          type: string
+          description: Official name of the Local Education Agency
+        LEAType:
+          type: string
+          description: Type of LEA
+          enum:
+            - RegularInSupervisoryUnion
+            - RegularNotInSupervisoryUnion
+            - SupervisoryUnion
+            - SpecializedPublicSchoolDistrict
+            - IndependentCharterDistrict
+            - StateOperatedAgency
+            - FederalOperatedAgency
+            - ServiceAgency
+        AddressList:
+          $ref: '#/components/schemas/AddressList'
+        PhoneNumberList:
+          $ref: '#/components/schemas/PhoneNumberList'
+        StateProvince:
+          type: string
+          description: State or province where LEA is located
+        StateANSICode:
+          type: string
+          description: State ANSI numeric code
+
+    StaffPersonal:
+      type: object
+      title: StaffPersonal
+      description: 'SIF object: Staff member personal and employment information'
+      required:
+        - '@RefId'
+        - Name
+      properties:
+        '@RefId':
+          type: string
+          format: uuid
+          description: GUID that uniquely identifies the staff member
+        '@AddressRole':
+          type: string
+          description: 'Type or function of the address'
+        Name:
+          $ref: '#/components/schemas/Name'
+        AddressList:
+          $ref: '#/components/schemas/AddressList'
+        PhoneNumberList:
+          $ref: '#/components/schemas/PhoneNumberList'
+        EmailList:
+          $ref: '#/components/schemas/EmailList'
+        Employment:
+          type: array
+          description: Employment history
+          items:
+            $ref: '#/components/schemas/EmploymentRecord'
+        Credentials:
+          type: array
+          description: Professional credentials
+          items:
+            $ref: '#/components/schemas/Credential'
+
+    Name:
+      type: object
+      title: Name
+      description: 'Complex type: Person name with given and family components'
+      properties:
+        FullName:
+          type: string
+          description: Full name of the person
+        GivenName:
+          type: string
+          description: Given or first name
+        FamilyName:
+          type: string
+          description: Family or last name
+        MiddleName:
+          type: string
+          description: Middle name
+        NamePrefix:
+          type: string
+          description: Name prefix (e.g., Mr., Mrs., Dr.)
+        NameSuffix:
+          type: string
+          description: Name suffix (e.g., Jr., Sr., III)
+        '@Type':
+          type: string
+          description: Type of name
+          enum:
+            - LegalName
+            - PreferredName
+            - Nickname
+            - PreviousLegalName
+            - Alias
+
+    Address:
+      type: object
+      title: Address
+      description: 'Complex type: Physical or mailing address'
+      properties:
+        '@Type':
+          type: string
+          description: Type of address
+          enum:
+            - Physical
+            - Mailing
+            - Billing
+            - Shipping
+            - Home
+            - Work
+            - School
+            - Permanent
+            - Temporary
+            - OnCampus
+            - OffCampus
+        StreetAddress:
+          type: string
+          description: Street address (first line)
+        StreetAddressTwo:
+          type: string
+          description: Street address (second line)
+        City:
+          type: string
+          description: City or locality
+        StateProvince:
+          type: string
+          description: State or province code
+        PostalCode:
+          type: string
+          description: Postal code or ZIP code
+        CountryCode:
+          type: string
+          format: iso-3166-1-alpha-2
+          description: ISO 3166-1 alpha-2 country code
+        CountyCode:
+          type: string
+          description: County or regional code
+        BeginDate:
+          type: string
+          format: date
+          description: Date address became effective
+        EndDate:
+          type: string
+          format: date
+          description: Date address is no longer effective
+
+    AddressList:
+      type: object
+      title: AddressList
+      description: 'Complex type: Collection of addresses'
+      properties:
+        Address:
+          type: array
+          description: List of addresses
+          items:
+            $ref: '#/components/schemas/Address'
+
+    PhoneNumber:
+      type: object
+      title: PhoneNumber
+      description: 'Complex type: Telephone contact information'
+      properties:
+        '@Type':
+          type: string
+          description: Type of phone number
+          enum:
+            - Home
+            - Mobile
+            - Work
+            - Fax
+            - School
+            - Other
+        Number:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: Telephone number in international format
+        Extension:
+          type: string
+          description: Phone extension number
+        PreferredFlag:
+          type: boolean
+          description: Whether this is the preferred phone number
+        BeginDate:
+          type: string
+          format: date
+          description: Date phone number became effective
+        EndDate:
+          type: string
+          format: date
+          description: Date phone number is no longer effective
+
+    PhoneNumberList:
+      type: object
+      title: PhoneNumberList
+      description: 'Complex type: Collection of phone numbers'
+      properties:
+        PhoneNumber:
+          type: array
+          description: List of phone numbers
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+
+    Email:
+      type: object
+      title: Email
+      description: 'Complex type: Electronic mail address'
+      properties:
+        '@Type':
+          type: string
+          description: Type of email address
+          enum:
+            - Home
+            - Work
+            - School
+            - Other
+        Address:
+          type: string
+          format: email
+          description: Email address
+        PreferredFlag:
+          type: boolean
+          description: Whether this is the preferred email
+        BeginDate:
+          type: string
+          format: date
+          description: Date email became effective
+
+    EmailList:
+      type: object
+      title: EmailList
+      description: 'Complex type: Collection of email addresses'
+      properties:
+        Email:
+          type: array
+          description: List of email addresses
+          items:
+            $ref: '#/components/schemas/Email'
+
+    Demographics:
+      type: object
+      title: Demographics
+      description: 'Complex type: Student demographic information'
+      properties:
+        BirthDate:
+          type: string
+          format: date
+          description: Date of birth
+        Gender:
+          type: string
+          description: Biological sex of student
+          enum:
+            - M
+            - F
+            - X
+            - U
+        RaceAndEthnicity:
+          type: array
+          description: Race and ethnicity codes
+          items:
+            type: string
+            enum:
+              - WhiteNotHispanicLatino
+              - BlackOrAfricanAmerican
+              - AmericanIndianOrAlaskaNative
+              - Asian
+              - NativeHawaiianOrOtherPacificIslander
+              - DemographicRaceTwoOrMoreRaces
+              - HispanicOrLatino
+              - RaceAndEthnicityUnknown
+        Citizenship:
+          type: string
+          description: Citizenship status
+          enum:
+            - Citizen
+            - PermanentResident
+            - TemporaryResident
+            - Unknown
+        ELLStatus:
+          type: string
+          description: English Language Learner status
+          enum:
+            - 'Yes'
+            - 'No'
+            - Unknown
+        PrimaryLanguage:
+          type: string
+          description: ISO 639-3 language code for primary language
+          enum:
+            - eng
+            - spa
+            - fra
+            - deu
+            - ita
+            - jpn
+            - kor
+            - zho
+            - ara
+            - rus
+
+    AcademicPerformanceSummary:
+      type: object
+      title: AcademicPerformanceSummary
+      description: 'Complex type: Summary of student academic performance'
+      properties:
+        YearToDate:
+          type: object
+          description: Academic performance data for year to date
+          properties:
+            GPA:
+              type: number
+              format: float
+              description: Grade point average (0.0 to 4.0)
+            CumulativeCreditsAttempted:
+              type: number
+              format: float
+              description: Total credits attempted year to date
+            CumulativeCreditsEarned:
+              type: number
+              format: float
+              description: Total credits earned year to date
+            AttendancePercentage:
+              type: number
+              format: float
+              description: Attendance percentage (0-100)
+        Cumulative:
+          type: object
+          description: Cumulative academic performance data
+          properties:
+            GPA:
+              type: number
+              format: float
+              description: Cumulative GPA
+            CumulativeCreditsAttempted:
+              type: number
+              format: float
+              description: Total credits attempted
+            CumulativeCreditsEarned:
+              type: number
+              format: float
+              description: Total credits earned
+
+    EnrollmentRecord:
+      type: object
+      title: EnrollmentRecord
+      description: 'Complex type: Student enrollment information'
+      properties:
+        SchoolRefId:
+          type: string
+          format: uuid
+          description: Reference to school
+        EntryDate:
+          type: string
+          format: date
+          description: Date student entered school
+        ExitDate:
+          type: string
+          format: date
+          description: Date student exited school
+        Grade:
+          type: string
+          description: Grade level
+          enum:
+            - PK
+            - KG
+            - '01'
+            - '02'
+            - '03'
+            - '04'
+            - '05'
+            - '06'
+            - '07'
+            - '08'
+            - '09'
+            - '10'
+            - '11'
+            - '12'
+            - '13'
+            - PS
+            - UG
+            - Other
+        EnrollmentStatus:
+          type: string
+          description: Current enrollment status
+          enum:
+            - Active
+            - Inactive
+            - Graduated
+            - Transferred
+            - Withdrawn
+
+    EmploymentRecord:
+      type: object
+      title: EmploymentRecord
+      description: 'Complex type: Staff employment information'
+      properties:
+        SchoolRefId:
+          type: string
+          format: uuid
+          description: Reference to employing school
+        BeginDate:
+          type: string
+          format: date
+          description: Employment start date
+        EndDate:
+          type: string
+          format: date
+          description: Employment end date
+        JobTitle:
+          type: string
+          description: Job title
+        JobFunction:
+          type: string
+          description: Primary job function code
+        EmploymentStatus:
+          type: string
+          description: Employment status
+          enum:
+            - Active
+            - Inactive
+            - OnLeave
+            - Retired
+            - Terminated
+        FullTimeStatus:
+          type: string
+          description: Full-time or part-time status
+          enum:
+            - FullTime
+            - PartTime
+            - Unknown
+
+    Credential:
+      type: object
+      title: Credential
+      description: 'Complex type: Professional credential or certification'
+      properties:
+        CredentialType:
+          type: string
+          description: Type of credential
+          enum:
+            - TeachingCertificate
+            - License
+            - Endorsement
+            - Degree
+            - Other
+        CredentialCode:
+          type: string
+          description: Credential identifier or code
+        CredentialName:
+          type: string
+          description: Credential name or description
+        IssueDate:
+          type: string
+          format: date
+          description: Date credential was issued
+        ExpirationDate:
+          type: string
+          format: date
+          description: Date credential expires
+        IssuingAuthority:
+          type: string
+          description: Authority that issued credential
+        State:
+          type: string
+          description: State code if applicable

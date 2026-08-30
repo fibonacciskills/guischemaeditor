@@ -1,0 +1,603 @@
+openapi: 3.0.0
+info:
+  title: JEDx Data Model API
+  description: Job Employment Data Exchange (JEDx) - A standard for exchanging job and employment data
+  version: 1.0.0
+  contact:
+    name: JEDx Standards Organization
+    url: https://jedx.org
+  license:
+    name: CC BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
+
+servers:
+  - url: https://api.jedx.org/v1
+    description: Production JEDx API Server
+
+tags:
+  - name: Jobs
+    description: Job posting and opportunity management
+  - name: Employers
+    description: Employer and organization information
+  - name: Compensation
+    description: Salary and compensation data
+  - name: Skills
+    description: Skills and competency management
+
+paths:
+  /jobs:
+    get:
+      summary: List all job postings
+      tags:
+        - Jobs
+      operationId: listJobs
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            format: int32
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+                  total:
+                    type: integer
+                    format: int32
+                  limit:
+                    type: integer
+                    format: int32
+                  offset:
+                    type: integer
+                    format: int32
+        '400':
+          description: Invalid parameters
+        '500':
+          description: Internal server error
+
+    post:
+      summary: Create a new job posting
+      tags:
+        - Jobs
+      operationId: createJob
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+      responses:
+        '201':
+          description: Job created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '400':
+          description: Invalid job data
+        '500':
+          description: Internal server error
+
+  /jobs/{jobId}:
+    get:
+      summary: Retrieve a specific job posting
+      tags:
+        - Jobs
+      operationId: getJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: The job identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '404':
+          description: Job not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a job posting
+      tags:
+        - Jobs
+      operationId: updateJob
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: The job identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+      responses:
+        '200':
+          description: Job updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '404':
+          description: Job not found
+        '500':
+          description: Internal server error
+
+  /employers:
+    get:
+      summary: List all employers
+      tags:
+        - Employers
+      operationId: listEmployers
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            format: int32
+            default: 20
+      responses:
+        '200':
+          description: List of employers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employer'
+                  total:
+                    type: integer
+                    format: int32
+        '500':
+          description: Internal server error
+
+  /employers/{employerId}:
+    get:
+      summary: Retrieve employer details
+      tags:
+        - Employers
+      operationId: getEmployer
+      parameters:
+        - name: employerId
+          in: path
+          required: true
+          description: The employer identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Employer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employer'
+        '404':
+          description: Employer not found
+        '500':
+          description: Internal server error
+
+  /jobs/{jobId}/skills:
+    get:
+      summary: Retrieve skills required for a job
+      tags:
+        - Skills
+      operationId: getJobSkills
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: The job identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of required skills
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Skill'
+                  jobId:
+                    type: string
+        '404':
+          description: Job not found
+        '500':
+          description: Internal server error
+
+  /jobs/{jobId}/compensation:
+    get:
+      summary: Retrieve compensation details for a job
+      tags:
+        - Compensation
+      operationId: getJobCompensation
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: The job identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Compensation package details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompensationPackage'
+        '404':
+          description: Job not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Job:
+      type: object
+      description: Represents a job opportunity or position
+      required:
+        - jobId
+        - jobTitle
+      properties:
+        jobId:
+          type: string
+          description: Unique identifier for the job
+          example: JOB-20240801-001
+        jobTitle:
+          type: string
+          description: Title of the position
+          example: Senior Software Engineer
+        description:
+          type: string
+          description: Detailed job description
+          example: We are seeking an experienced software engineer with expertise in cloud technologies.
+        postedDate:
+          type: string
+          format: date-time
+          description: When the job was posted
+          example: '2024-08-01T10:30:00Z'
+        closeDate:
+          type: string
+          format: date-time
+          description: Application closing date
+          example: '2024-08-31T23:59:59Z'
+        employerId:
+          type: string
+          description: Reference to the Employer posting this job
+          example: EMP-12345
+        locationId:
+          type: string
+          description: Reference to the Location of this job
+          example: LOC-NEW-YORK
+        compensationId:
+          type: string
+          description: Reference to the compensation package
+          example: COMP-001
+        employmentTypeId:
+          type: string
+          description: Reference to employment type
+          example: TYPE-FULLTIME
+        workScheduleId:
+          type: string
+          description: Reference to work schedule
+          example: SCHED-001
+        skills:
+          type: array
+          description: Required or preferred skills
+          items:
+            type: string
+          example:
+            - SKILL-JAVA
+            - SKILL-KUBERNETES
+            - SKILL-AWS
+
+    Employer:
+      type: object
+      description: Organization posting jobs
+      required:
+        - employerId
+        - employerName
+      properties:
+        employerId:
+          type: string
+          description: Unique identifier
+          example: EMP-12345
+        employerName:
+          type: string
+          description: Name of employer
+          example: TechCorp Inc.
+        website:
+          type: string
+          format: uri
+          description: Company website URL
+          example: https://www.techcorp.com
+        industryCode:
+          type: string
+          description: Industry classification code
+          example: '511210'
+        logoUrl:
+          type: string
+          format: uri
+          description: URL to company logo
+          example: https://www.techcorp.com/logo.png
+        contactEmail:
+          type: string
+          format: email
+          description: Contact email for job inquiries
+          example: jobs@techcorp.com
+
+    CompensationPackage:
+      type: object
+      description: Salary and benefits information
+      required:
+        - compensationId
+      properties:
+        compensationId:
+          type: string
+          description: Unique compensation package identifier
+          example: COMP-001
+        minSalary:
+          type: number
+          format: double
+          description: Minimum salary
+          example: 80000.00
+        maxSalary:
+          type: number
+          format: double
+          description: Maximum salary
+          example: 150000.00
+        salaryType:
+          type: string
+          description: Type of salary
+          enum:
+            - Annual
+            - Hourly
+            - Daily
+            - Contract
+          example: Annual
+        currency:
+          type: string
+          description: Currency code (ISO 4217)
+          example: USD
+        benefits:
+          type: array
+          description: Benefits included in compensation
+          items:
+            type: string
+          example:
+            - Health Insurance
+            - 401(k)
+            - Flexible Hours
+            - Remote Work
+
+    Location:
+      type: object
+      description: Job location information
+      required:
+        - locationId
+      properties:
+        locationId:
+          type: string
+          description: Unique location identifier
+          example: LOC-NEW-YORK
+        city:
+          type: string
+          description: City name
+          example: New York
+        state:
+          type: string
+          description: State or province
+          example: NY
+        country:
+          type: string
+          description: Country code (ISO 3166-1)
+          example: US
+        zipCode:
+          type: string
+          description: Postal code
+          example: '10001'
+        latitude:
+          type: number
+          format: double
+          description: Geographic latitude
+          example: 40.7128
+        longitude:
+          type: number
+          format: double
+          description: Geographic longitude
+          example: -74.0060
+        remote:
+          type: boolean
+          description: Indicates if position allows remote work
+          example: true
+        remoteType:
+          type: string
+          description: Type of remote work arrangement
+          enum:
+            - FullyRemote
+            - Hybrid
+            - OnSite
+          example: Hybrid
+
+    Skill:
+      type: object
+      description: Required or preferred skill for a job
+      required:
+        - skillId
+        - skillName
+      properties:
+        skillId:
+          type: string
+          description: Unique skill identifier
+          example: SKILL-JAVA
+        skillName:
+          type: string
+          description: Name of the skill
+          example: Java Programming
+        proficiencyLevel:
+          type: string
+          description: Required proficiency level
+          enum:
+            - Beginner
+            - Intermediate
+            - Advanced
+            - Expert
+          example: Advanced
+        importance:
+          type: string
+          description: Importance of the skill for the job
+          enum:
+            - Required
+            - Preferred
+            - Optional
+          example: Required
+        yearsExperience:
+          type: integer
+          format: int32
+          description: Years of experience required
+          example: 5
+
+    EmploymentType:
+      type: object
+      description: Type of employment
+      required:
+        - typeId
+        - typeName
+      properties:
+        typeId:
+          type: string
+          description: Employment type identifier
+          example: TYPE-FULLTIME
+        typeName:
+          type: string
+          description: Name of employment type
+          enum:
+            - FullTime
+            - PartTime
+            - Contract
+            - Temporary
+            - Internship
+          example: FullTime
+
+    WorkSchedule:
+      type: object
+      description: Work schedule and hours
+      required:
+        - scheduleId
+        - scheduleType
+      properties:
+        scheduleId:
+          type: string
+          description: Schedule identifier
+          example: SCHED-001
+        scheduleType:
+          type: string
+          description: Type of schedule
+          enum:
+            - FullTime
+            - PartTime
+            - Contract
+            - Temporary
+            - Internship
+          example: FullTime
+        hoursPerWeek:
+          type: integer
+          format: int32
+          description: Hours per week
+          example: 40
+        shiftInformation:
+          type: string
+          description: Shift details (e.g., day shift, night shift)
+          example: Standard business hours 9AM-5PM EST
+
+  responses:
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: string
+
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: object
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+externalDocs:
+  description: JEDx Data Model Documentation
+  url: https://jedx.org/docs

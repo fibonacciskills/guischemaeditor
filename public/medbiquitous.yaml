@@ -1,0 +1,682 @@
+openapi: 3.0.0
+info:
+  title: MedBiquitous Health Professions Education and Credentialing Standards
+  description: |
+    OpenAPI specification for MedBiquitous — Health Professions Education and Credentialing Standards Portfolio.
+    This API provides access to standardized health professions education, credentialing, and professional profile data.
+    The MedBiquitous standard encompasses 387 complex types, 171 simple types, and 70 groups across 27 XSD and 6 WSDL files.
+  version: 1.0
+  contact:
+    name: MedBiquitous
+    url: https://github.com/medbiq/medbiq
+  license:
+    name: MedBiquitous License
+    url: https://github.com/medbiq/medbiq
+servers:
+  - url: https://api.medbiquitous.org/v1
+    description: MedBiquitous API Server
+paths:
+  /members:
+    get:
+      summary: Retrieve healthcare professional members
+      operationId: getMembers
+      tags:
+        - Healthcare Professionals
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of healthcare professional members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthcareProfessional'
+    post:
+      summary: Create a new healthcare professional member
+      operationId: createMember
+      tags:
+        - Healthcare Professionals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HealthcareProfessional'
+      responses:
+        '201':
+          description: Healthcare professional member created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthcareProfessional'
+  /activity-reports:
+    get:
+      summary: Retrieve continuing education activity reports
+      operationId: getActivityReports
+      tags:
+        - Activity Reports
+      parameters:
+        - name: reportingStartDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: reportingEndDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of activity reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActivityReport'
+    post:
+      summary: Submit a continuing education activity report
+      operationId: createActivityReport
+      tags:
+        - Activity Reports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityReport'
+      responses:
+        '201':
+          description: Activity report submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityReport'
+  /curriculum-inventory:
+    get:
+      summary: Retrieve curriculum inventory records
+      operationId: getCurriculumInventory
+      tags:
+        - Curriculum
+      responses:
+        '200':
+          description: List of curriculum inventory records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CurriculumInventory'
+  /assessments:
+    get:
+      summary: Retrieve educational assessment data
+      operationId: getAssessments
+      tags:
+        - Assessments
+      parameters:
+        - name: assessmentType
+          in: query
+          schema:
+            type: string
+            enum:
+              - Formative
+              - Summative
+      responses:
+        '200':
+          description: List of assessment records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssessmentScore'
+components:
+  schemas:
+    HealthcareProfessional:
+      type: object
+      description: Healthcare professional member profile with clinical and academic information
+      properties:
+        professionalID:
+          type: string
+          description: Unique identifier for the healthcare professional
+        firstName:
+          type: string
+          description: First name of the professional
+        lastName:
+          type: string
+          description: Last name of the professional
+        profession:
+          type: string
+          enum:
+            - Physician
+            - Nurse
+            - Pharmacist
+            - Dentist
+            - Physician Assistant
+            - Psychologist
+            - Podiatrist
+            - Veterinarian
+            - Optometrist
+            - Advanced practice nurse
+            - Other healthcare professional
+            - Other
+          description: Primary healthcare profession
+        timeInPractice:
+          type: string
+          enum:
+            - Trainee
+            - 0-5 years post training
+            - 6-10 years
+            - 11-15 years
+            - 16-20 years
+            - 21+ years
+          description: Years of professional practice experience
+        practiceArea:
+          type: string
+          enum:
+            - General Surgery
+            - Internal Medicine
+            - Family Medicine
+            - Emergency
+            - Anesthesiology
+            - Pediatric
+            - Obstetrics/Gynecology
+            - Psychiatry
+            - Neurology
+            - Orthopedic surgery
+            - Urology
+            - Ophthalmology
+            - Dentistry
+            - Critical Care
+            - Hematology
+            - Oncology
+            - Pain
+            - Geriatric
+            - Addiction
+            - Hospice and/or Palliative Care
+            - Physical Medicine and Rehabilitation
+            - Other surgical specialty
+            - N/A
+            - Other
+          description: Primary medical specialty or practice area
+        deaRegistration:
+          type: string
+          enum:
+            - None
+            - Individual
+            - Institutional
+          description: Drug Enforcement Administration registration status
+        appointments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Appointment'
+          description: List of academic or clinical appointments
+        boardActions:
+          type: array
+          items:
+            $ref: '#/components/schemas/BoardAction'
+          description: Disciplinary or credential actions by licensing boards
+        address:
+          $ref: '#/components/schemas/Address'
+          description: Professional or residential address information
+    Appointment:
+      type: object
+      description: Academic or clinical appointment record
+      properties:
+        appointmentType:
+          type: string
+          description: Category of appointment (Faculty, Administrative, Division, or Chair)
+        title:
+          type: string
+          description: Official title of the appointment
+        effectiveDate:
+          type: string
+          format: date
+          description: Date appointment becomes effective
+        endDate:
+          type: string
+          format: date
+          description: Date appointment ends or is terminated
+        administrativeUnit:
+          type: string
+          description: Department, division, or organizational unit
+        locationType:
+          type: string
+          description: Type of location (primary, secondary, remote, etc.)
+    ActivityReport:
+      type: object
+      description: Continuing education or professional development activity report
+      properties:
+        reportID:
+          type: string
+          description: Unique identifier for the activity report
+        reportingOrganization:
+          type: string
+          description: Organization submitting the report
+        activity:
+          $ref: '#/components/schemas/Activity'
+          description: Detailed activity information
+        member:
+          $ref: '#/components/schemas/HealthcareProfessional'
+          description: Healthcare professional who participated in the activity
+        reportingStartDate:
+          type: string
+          format: date
+          description: Start date of the reporting period
+        reportingEndDate:
+          type: string
+          format: date
+          description: End date of the reporting period
+    Activity:
+      type: object
+      description: Educational activity or continuing professional development program
+      properties:
+        activityID:
+          type: string
+          description: Unique identifier for the activity
+        activityName:
+          type: string
+          description: Name or title of the activity
+        status:
+          type: string
+          enum:
+            - Active
+            - Completed
+            - Expired
+            - Registered
+            - Retired
+          description: Current status of the activity
+        designedToChangeCompetence:
+          type: boolean
+          description: Whether activity is designed to change competence
+        designedToChangePerformance:
+          type: boolean
+          description: Whether activity is designed to change performance
+        designedToChangePatientOutcomes:
+          type: boolean
+          description: Whether activity is designed to change patient outcomes
+        changesInCompetenceMeasured:
+          type: boolean
+          description: Whether changes in competence are measured
+        changesInPerformanceMeasured:
+          type: boolean
+          description: Whether changes in performance are measured
+        changesInPatientOutcomesMeasured:
+          type: boolean
+          description: Whether changes in patient outcomes are measured
+    CurriculumInventory:
+      type: object
+      description: Educational curriculum inventory record with academic levels and assessment methods
+      properties:
+        inventoryID:
+          type: string
+          description: Unique identifier for the curriculum inventory
+        institution:
+          type: string
+          description: Educational institution name
+        program:
+          type: string
+          description: Degree or educational program name
+        academicLevels:
+          type: object
+          properties:
+            levelsInProgram:
+              type: integer
+              description: Total number of academic levels in the program
+            levels:
+              type: array
+              items:
+                type: object
+                properties:
+                  levelNumber:
+                    type: integer
+                    description: Numeric level identifier (1, 2, 3, etc.)
+                  levelName:
+                    type: string
+                    description: Name of the academic level (e.g., Year 1, Preclinical)
+          description: Academic level information within the program
+        assessmentMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentMethod'
+          description: Methods used for student assessment
+    AssessmentMethod:
+      type: object
+      description: Assessment methodology information with purpose and source
+      properties:
+        source:
+          type: string
+          description: Source or origin of the assessment method
+        sourceID:
+          type: string
+          description: Identifier for the assessment source
+        purpose:
+          type: string
+          enum:
+            - Formative
+            - Summative
+          description: Purpose of the assessment (formative or summative)
+    AssessmentScore:
+      type: object
+      description: Student or learner assessment score data with detailed metrics
+      properties:
+        assessmentID:
+          type: string
+          description: Unique identifier for the assessment
+        assessmentName:
+          type: string
+          description: Name of the assessment
+        description:
+          type: string
+          description: Detailed description of the assessment
+        scoreValue:
+          type: number
+          format: float
+          description: Numeric score value
+        scoreMethod:
+          type: string
+          description: Method or algorithm used to calculate the score
+        classification:
+          type: string
+          description: Classification or category of the score (pass/fail, grade level, etc.)
+        assessmentStartDate:
+          type: string
+          format: date
+          description: Date when assessment began
+        assessmentEndDate:
+          type: string
+          format: date
+          description: Date when assessment was completed
+        source:
+          type: string
+          description: Source or origin of the assessment data
+    BoardAction:
+      type: object
+      description: Licensing board action, disciplinary action, or credential-related action
+      properties:
+        boardActionID:
+          type: string
+          description: Unique identifier for the board action
+        actionCategory:
+          type: string
+          description: Category of board action (suspension, revocation, probation, etc.)
+        actionDescription:
+          type: string
+          description: Detailed description of the action taken
+        actionEffectiveDate:
+          type: string
+          format: date
+          description: Date when the action became effective
+        actionExpirationDate:
+          type: string
+          format: date
+          description: Date when the action expires or is lifted
+        prejudicial:
+          type: boolean
+          description: Whether the action is prejudicial to license/credential
+        actionStayed:
+          type: boolean
+          description: Whether the action has been stayed (suspended)
+        indefiniteAction:
+          type: boolean
+          description: Whether the action is indefinite in duration
+        boardAppeals:
+          type: array
+          items:
+            $ref: '#/components/schemas/BoardAppeal'
+          description: Appeals related to this board action
+    BoardAppeal:
+      type: object
+      description: Appeal of a licensing board action or disciplinary decision
+      properties:
+        appealID:
+          type: string
+          description: Unique identifier for the appeal
+        noticeOfAppealDate:
+          type: string
+          format: date
+          description: Date when notice of appeal was filed
+        appellantSource:
+          type: object
+          properties:
+            domain:
+              type: string
+              description: Domain or authority code
+            code:
+              type: string
+              description: Appeal source code identifier
+          description: Source or origin of the appeal
+        courtName:
+          type: string
+          description: Name of the court hearing the appeal
+        judgement:
+          type: string
+          description: Judgement or decision rendered by the court
+        practicePermitted:
+          type: boolean
+          description: Whether practice is permitted pending appeal decision
+    Address:
+      type: object
+      description: Physical address information with geographic components
+      properties:
+        addressID:
+          type: string
+          description: Unique identifier for the address record
+        addressCategory:
+          type: string
+          description: Type of address (business, residential, mailing, etc.)
+        streetAddressLine:
+          type: string
+          description: Street address
+        city:
+          type: string
+          description: City or municipality
+        stateOrProvince:
+          type: string
+          description: State, province, or equivalent jurisdiction
+        postalCode:
+          type: string
+          description: ZIP code, postal code, or equivalent
+        country:
+          type: string
+          description: Country name or code
+        region:
+          type: string
+          description: Geographic region or area
+        district:
+          type: string
+          description: Administrative district
+        organization:
+          type: string
+          description: Associated organization name
+    AcademicAppointmentType:
+      type: object
+      description: Academic appointment types within an institution
+      properties:
+        administrativeAppointment:
+          type: object
+          description: Administrative appointment details
+        facultyAppointment:
+          type: object
+          description: Faculty appointment details
+        divisionOrSectionAppointment:
+          type: object
+          description: Division or section appointment details
+        chairAppointment:
+          type: object
+          description: Chair appointment details
+    AchievementInContextType:
+      type: object
+      description: Educational achievement within specific institutional and program context
+      properties:
+        summary:
+          type: string
+          description: Brief summary of the achievement
+        description:
+          type: string
+          description: Detailed description of the achievement
+        source:
+          type: string
+          description: Source or origin of the achievement data
+        institution:
+          type: string
+          description: Educational institution where achievement occurred
+        program:
+          type: string
+          description: Educational program name
+        academicLevels:
+          type: object
+          description: Academic level information
+        language:
+          type: string
+          description: Language of instruction or documentation
+        performanceFrameworks:
+          type: array
+          items:
+            type: object
+          description: Performance frameworks or standards addressed
+        reportDate:
+          type: string
+          format: date
+          description: Date of the achievement report
+        reportingStartDate:
+          type: string
+          format: date
+          description: Start date of reporting period
+        reportingEndDate:
+          type: string
+          format: date
+          description: End date of reporting period
+        reportID:
+          type: string
+          description: Unique identifier for the achievement report
+    ActionSpanType:
+      type: object
+      description: Temporal span of an action with effective dates and duration
+      properties:
+        actionEffectiveDate:
+          type: string
+          format: date
+          description: Date when action becomes effective
+        actionExpirationDate:
+          type: string
+          format: date
+          description: Date when action expires
+        termFromDate:
+          type: string
+          format: date
+          description: Term start date
+        termToDate:
+          type: string
+          format: date
+          description: Term end date
+        termDuration:
+          type: string
+          description: Duration of the term
+    ActivityDescriptionType:
+      type: object
+      description: Detailed characteristics and outcomes of educational activity
+      properties:
+        designedToChangeCompetence:
+          type: boolean
+          description: Designed to change competence
+        changesInCompetenceMeasured:
+          type: boolean
+          description: Changes in competence measured
+        designedToChangePerformance:
+          type: boolean
+          description: Designed to change performance
+        changesInPerformanceMeasured:
+          type: boolean
+          description: Changes in performance measured
+        designedToChangePatientOutcomes:
+          type: boolean
+          description: Designed to change patient outcomes
+        changesInPatientOutcomesMeasured:
+          type: boolean
+          description: Changes in patient outcomes measured
+        commercialSupportAmount:
+          type: number
+          format: float
+          description: Amount of commercial support received
+        expenses:
+          type: number
+          format: float
+          description: Total expenses for the activity
+        advertisingAndExhibitIncome:
+          type: number
+          format: float
+          description: Income from advertising and exhibits
+        otherIncome:
+          type: number
+          format: float
+          description: Other income sources
+    AssessmentResponseDataType:
+      type: object
+      description: Individual assessment response with correctness indicator
+      properties:
+        correct:
+          type: boolean
+          description: Whether the response is correct
+        assessmentResponseItemData:
+          type: array
+          items:
+            type: object
+            description: Detailed response item data
+          description: Collection of response items
+    AssessmentResultsType:
+      type: object
+      description: Complete assessment results with scores and evidence
+      properties:
+        score:
+          type: number
+          format: float
+          description: Primary assessment score
+        subScore:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Component or subsection scores
+        assessmentStartDate:
+          type: string
+          format: date
+          description: Date assessment started
+        assessmentEndDate:
+          type: string
+          format: date
+          description: Date assessment ended
+        evidence:
+          type: string
+          description: Supporting evidence for the assessment
+        learnerNotes:
+          type: string
+          description: Notes provided by the learner
+        facultyNotes:
+          type: string
+          description: Notes provided by faculty or assessor
+        portfolioReference:
+          type: string
+          description: Reference to portfolio containing supporting materials
+    AdministrativeAppointmentType:
+      type: object
+      description: Administrative appointment with title and location type
+      properties:
+        title:
+          type: string
+          description: Administrative title or position
+        locationType:
+          type: string
+          description: Type of location for the appointment
