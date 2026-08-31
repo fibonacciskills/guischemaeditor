@@ -31,6 +31,7 @@ function FlowchartPanel() {
   const [editingNode, setEditingNode] = useState(null)
   const [selectedNodes, setSelectedNodes] = useState([])
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const containerRef = useRef(null)
 
   // Update local nodes when store changes
@@ -42,6 +43,45 @@ function FlowchartPanel() {
   React.useEffect(() => {
     setLocalEdges(storeEdges)
   }, [storeEdges, setLocalEdges])
+
+  // Filter nodes and edges based on search query
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return { nodes, edges, matchCount: nodes.length }
+    }
+
+    const query = searchQuery.toLowerCase()
+    const matchingNodeIds = new Set()
+
+    // Find nodes matching search
+    const filteredNodes = nodes.map((node) => {
+      const label = node.data?.label?.toLowerCase() || ''
+      const description = node.data?.description?.toLowerCase() || ''
+      const isMatch = label.includes(query) || description.includes(query)
+
+      if (isMatch) {
+        matchingNodeIds.add(node.id)
+      }
+
+      return {
+        ...node,
+        style: isMatch
+          ? { ...node.style, border: '2px solid #FF6B6B', backgroundColor: '#FFE0E0' }
+          : { ...node.style, opacity: 0.3 },
+      }
+    })
+
+    // Show only edges between visible nodes
+    const filteredEdges = edges.filter(
+      (edge) => matchingNodeIds.has(edge.source) && matchingNodeIds.has(edge.target)
+    )
+
+    return {
+      nodes: filteredNodes,
+      edges: filteredEdges,
+      matchCount: matchingNodeIds.size,
+    }
+  }, [nodes, edges, searchQuery])
 
   // Custom node types
   const nodeTypes = useMemo(
@@ -229,6 +269,18 @@ function FlowchartPanel() {
 
   const toolbar = (
     <div className="absolute top-2 left-2 z-10 flex flex-col gap-2">
+      <input
+        type="text"
+        placeholder="Search nodes…"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-500 w-44"
+      />
+      {searchQuery && (
+        <div className="text-xs bg-white px-3 py-1.5 rounded shadow text-gray-700">
+          Found {filteredData.matchCount} node{filteredData.matchCount !== 1 ? 's' : ''}
+        </div>
+      )}
       <div className="flex gap-2">
         <button
           onClick={handleAddSchemaNode}
@@ -284,8 +336,8 @@ function FlowchartPanel() {
     <div ref={containerRef} className="w-full h-full bg-gray-50 relative">
       {toolbar}
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={filteredData.nodes}
+        edges={filteredData.edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
